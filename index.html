@@ -1,0 +1,2716 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniTools PRO - Мультитул на максималках</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+        :root {
+            --bg-color: #0a0a10;
+            --surface-color: #12121c;
+            --surface2: #1a1a28;
+            --primary-color: #a855f7;
+            --primary-hover: #9333ea;
+            --primary-glow: rgba(168,85,247,0.25);
+            --text-color: #f0f0ff;
+            --text-muted: #8080a0;
+            --border-color: #252535;
+            --overlay-bg: rgba(0, 0, 0, 0.75);
+            --danger: #ff4757;
+            --success: #2ed573;
+        }
+        [data-theme="light"] {
+            --bg-color: #f0eeff;
+            --surface-color: #ffffff;
+            --surface2: #f7f5ff;
+            --primary-color: #7c3aed;
+            --primary-hover: #6d28d9;
+            --primary-glow: rgba(124,58,237,0.15);
+            --text-color: #1a1a2e;
+            --text-muted: #6060a0;
+            --border-color: #e0daf5;
+            --overlay-bg: rgba(0, 0, 0, 0.35);
+            --danger: #e63946;
+            --success: #2a9d5c;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* ===== HEADER ===== */
+        header {
+            background-color: var(--surface-color);
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1001;
+            height: 60px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.2);
+        }
+        .header-left { display: flex; align-items: center; gap: 12px; flex: 1; }
+        .logo {
+            cursor: pointer; font-weight: 900; font-size: 17px;
+            color: var(--primary-color); user-select: none;
+            font-family: 'Unbounded', sans-serif;
+            letter-spacing: -0.5px; white-space: nowrap;
+        }
+        .header-center {
+            flex: 1; text-align: center; font-weight: 700; font-size: 15px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            padding: 0 8px; font-family: 'Unbounded', sans-serif; letter-spacing: -0.3px;
+        }
+        .header-right { display: flex; align-items: center; flex: 1; justify-content: flex-end; }
+        .header-btn {
+            background: none; border: none; font-size: 20px; color: var(--text-color);
+            cursor: pointer; transition: 0.2s; width: 40px; height: 40px;
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .header-btn:hover { background-color: var(--surface2); color: var(--primary-color); }
+        @media (max-width: 420px) { .logo { display: none; } .header-center { font-size: 13px; } }
+        .logo-short {
+            display: none; cursor: pointer; font-weight: 900; font-size: 15px;
+            color: var(--primary-color); font-family: 'Unbounded', sans-serif;
+            background: rgba(168,85,247,0.12); border: 1.5px solid rgba(168,85,247,0.3);
+            padding: 5px 9px; border-radius: 8px; user-select: none; letter-spacing: 0.5px;
+        }
+        .logo-short:hover { background: rgba(168,85,247,0.22); }
+        @media (max-width: 420px) { .logo-short { display: block; } }
+
+        /* ===== TIMER BUTTONS ===== */
+        .timer-btn-run  { background: var(--primary-color) !important; color: white !important; border: none !important; box-shadow: 0 4px 15px var(--primary-glow) !important; }
+        .timer-btn-stop { background: var(--surface-color) !important; color: var(--danger) !important; border: 1.5px solid var(--danger) !important; box-shadow: none !important; }
+        .timer-btn-reset{ background: var(--surface-color) !important; color: var(--text-color) !important; border: 1.5px solid var(--border-color) !important; box-shadow: none !important; }
+
+        /* ===== SIDEBAR ===== */
+        #overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--overlay-bg); z-index: 998; backdrop-filter: blur(4px);
+        }
+        #sidebar {
+            position: fixed; top: 0; left: -295px; width: 285px; height: 100%;
+            background-color: var(--surface-color);
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; flex-direction: column;
+            z-index: 999;
+            box-shadow: 5px 0 40px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+        #sidebar.open { left: 0; }
+
+        .sidebar-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 18px; border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0; min-height: 60px;
+        }
+        .sidebar-logo { font-weight: 900; font-size: 16px; color: var(--primary-color); font-family: 'Unbounded', sans-serif; }
+        .sidebar-close {
+            background: none; border: none; color: var(--text-muted); cursor: pointer;
+            font-size: 18px; width: 34px; height: 34px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center; transition: 0.2s;
+        }
+        .sidebar-close:hover { background: var(--surface2); color: var(--text-color); }
+
+        .sidebar-scroll { overflow-y: auto; flex: 1; padding-bottom: 20px; }
+        .sidebar-scroll::-webkit-scrollbar { width: 3px; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+
+        .sidebar-cat {
+            padding: 16px 18px 6px;
+            font-size: 9px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 2.5px; color: var(--primary-color);
+            display: flex; align-items: center; gap: 8px;
+            font-family: 'Unbounded', sans-serif;
+        }
+        .sidebar-cat::after { content: ''; flex: 1; height: 1px; background: var(--border-color); }
+
+        .tab-btn {
+            background: none; border: none; border-left: 3px solid transparent;
+            color: var(--text-muted); padding: 10px 18px;
+            text-align: left; font-size: 13.5px; cursor: pointer;
+            transition: all 0.15s; display: flex; align-items: center; gap: 10px;
+            font-weight: 600; width: 100%; font-family: 'Manrope', sans-serif;
+        }
+        .tab-btn:hover { background-color: var(--primary-glow); color: var(--text-color); border-left-color: var(--border-color); }
+        .tab-btn.active { background-color: rgba(168,85,247,0.1); color: var(--primary-color); border-left-color: var(--primary-color); font-weight: 800; }
+        .t-icon { font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
+
+        /* ===== MAIN ===== */
+        main { flex: 1; padding: 20px; overflow-y: auto; }
+        main::-webkit-scrollbar { width: 5px; }
+        main::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+
+        .section { display: none; max-width: 860px; margin: 0 auto; animation: slideUp 0.3s cubic-bezier(0.16,1,0.3,1); }
+        .section.active { display: block; }
+        @keyframes slideUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+
+        .card {
+            background-color: var(--surface-color); padding: 28px; border-radius: 22px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.2); border: 1px solid var(--border-color);
+        }
+        .center-title {
+            text-align: center; color: var(--primary-color); margin: 0 0 6px;
+            font-size: 24px; font-weight: 900; font-family: 'Unbounded', sans-serif; letter-spacing: -0.5px;
+        }
+        .center-sub { text-align:center; color:var(--text-muted); margin: 0 0 20px; font-size:13px; font-weight:500; }
+
+        input:not([type="checkbox"]):not([type="range"]), select, textarea {
+            width: 100%; padding: 13px 15px; margin: 8px 0;
+            background: var(--surface2); border: 1.5px solid var(--border-color);
+            color: var(--text-color); border-radius: 12px; font-size: 15px;
+            outline: none; transition: border-color 0.2s, box-shadow 0.2s; font-family: 'Manrope', sans-serif;
+        }
+        input:not([type="checkbox"]):not([type="range"]):focus,
+        select:focus, textarea:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .btn {
+            background: var(--primary-color); color: white; border: none;
+            padding: 14px; border-radius: 12px; cursor: pointer; font-weight: 800;
+            font-size: 14px; width: 100%; margin-top: 12px; transition: all 0.2s;
+            box-shadow: 0 4px 20px var(--primary-glow); font-family: 'Manrope', sans-serif;
+            letter-spacing: 0.3px;
+        }
+        .btn:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(168,85,247,0.45); }
+        .btn:active { transform: translateY(1px) !important; box-shadow: none !important; }
+
+        .result-box {
+            margin-top: 16px; padding: 16px 18px; background: var(--surface2);
+            border-radius: 12px; border-left: 4px solid var(--primary-color);
+            text-align: center; font-size: 22px; font-weight: bold;
+            cursor: pointer; transition: 0.2s; min-height: 56px;
+            display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+        }
+        .result-box:hover { background: var(--border-color); }
+        .copy-hint { font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 5px; opacity: 0.7; }
+
+        /* ===== HOME ===== */
+        .hero { text-align: center; padding: 8px 0 26px; }
+        .hero h2 {
+            font-size: 38px; margin: 0 0 8px;
+            background: linear-gradient(135deg, var(--primary-color), #ff6ef7);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            font-family: 'Unbounded', sans-serif; letter-spacing: -1px;
+        }
+        .hero p { max-width: 560px; margin: 0 auto 10px; color: var(--text-muted); font-size: 15px; line-height: 1.7; }
+        .info-badge {
+            display: inline-block; background: rgba(168,85,247,0.1); color: var(--primary-color);
+            padding: 7px 16px; border-radius: 20px; font-size: 12px; font-weight: 800;
+            margin-bottom: 24px; border: 1px solid rgba(168,85,247,0.3);
+            font-family: 'Unbounded', sans-serif; letter-spacing: 0.5px;
+        }
+        .home-cats { display: flex; flex-direction: column; gap: 22px; }
+        .cat-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .cat-lbl { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: var(--primary-color); white-space: nowrap; font-family: 'Unbounded', sans-serif; }
+        .cat-line { flex: 1; height: 1px; background: var(--border-color); }
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); gap: 10px; }
+        .dash-card {
+            background: var(--surface-color); padding: 16px 10px; border-radius: 16px;
+            text-align: center; cursor: pointer; border: 1px solid var(--border-color);
+            transition: all 0.25s; display: flex; flex-direction: column; align-items: center; gap: 8px;
+        }
+        .dash-card:hover { border-color: var(--primary-color); transform: translateY(-4px); box-shadow: 0 8px 24px var(--primary-glow); }
+        .dash-icon { font-size: 28px; line-height: 1; }
+        .dash-card span { font-weight: 700; font-size: 11px; color: var(--text-muted); }
+        .dash-card:hover span { color: var(--primary-color); }
+
+        /* ===== SWITCHES ===== */
+        .switch-wrap {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 15px; background: var(--surface2); border: 1.5px solid var(--border-color);
+            border-radius: 12px; margin: 8px 0; cursor: pointer; transition: 0.18s; user-select: none;
+        }
+        .switch-wrap:hover { border-color: var(--primary-color); }
+        .switch-wrap span { font-size: 14px; font-weight: 600; }
+        .switch { position: relative; display: inline-block; width: 46px; height: 25px; flex-shrink: 0; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border-color); transition: .3s; border-radius: 30px; }
+        .slider:before { position: absolute; content: ""; height: 17px; width: 17px; left: 4px; bottom: 4px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        input:checked + .slider { background-color: var(--primary-color); }
+        input:checked + .slider:before { transform: translateX(21px); }
+
+        /* ===== CALCULATOR ===== */
+        .calc-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+        .calc-btn {
+            background: var(--surface2); border: 1.5px solid var(--border-color);
+            color: var(--text-color); padding: 19px 10px; border-radius: 12px;
+            cursor: pointer; font-size: 18px; font-weight: 700; transition: 0.12s;
+            font-family: 'Manrope', sans-serif;
+        }
+        .calc-btn:hover { background: var(--border-color); border-color: var(--text-muted); }
+        .calc-btn:active { transform: scale(0.92); }
+        .calc-btn.op { color: var(--primary-color); background: rgba(168,85,247,0.06); border-color: rgba(168,85,247,0.2); }
+        .calc-btn.op:hover { background: rgba(168,85,247,0.12); }
+        #calcDisplay {
+            background: var(--surface2); padding: 18px 20px; text-align: right;
+            font-size: 30px; border-radius: 14px; margin-bottom: 14px;
+            border: 1.5px solid var(--border-color); font-family: 'Courier New', monospace;
+            min-height: 70px; word-break: break-all;
+        }
+        #calcExpression { font-size: 12px; color: var(--text-muted); min-height: 18px; margin-bottom: 4px; word-break: break-all; }
+
+        /* ===== RANGE ===== */
+        input[type="range"] {
+            -webkit-appearance: none; height: 6px; background: var(--border-color);
+            border-radius: 5px; outline: none; margin: 16px 0; border: none; padding: 0; width: 100%;
+        }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--primary-color); cursor: pointer; box-shadow: 0 0 10px var(--primary-glow); }
+
+        /* ===== CURRENCY ===== */
+        .rates-card { background: var(--surface2); border: 1.5px solid var(--border-color); padding: 18px; border-radius: 14px; margin-top: 20px; }
+        .rates-title { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; font-weight: 800; font-family: 'Unbounded', sans-serif; }
+        .rates-table { width: 100%; border-collapse: collapse; }
+        .rates-table td { padding: 11px 0; border-bottom: 1px solid var(--border-color); font-size: 14px; }
+        .rates-table tr:last-child td { border-bottom: none; }
+        .flag-icon { font-size: 17px; margin-right: 8px; vertical-align: middle; }
+        .rate-name { color: var(--text-muted); font-size: 12px; }
+        .rate-val { font-weight: 800; text-align: right; }
+        .rates-note { font-size: 10px; color: var(--text-muted); text-align: center; margin-top: 10px; opacity: 0.7; }
+
+        /* ===== QR ===== */
+        .qr-output { display: none; flex-direction: column; align-items: center; gap: 14px; margin-top: 20px; padding: 22px; background: var(--surface2); border-radius: 16px; border: 1.5px solid var(--border-color); }
+        #qrCanvas { border-radius: 12px; }
+        .qr-text-preview { font-size: 12px; color: var(--text-muted); text-align: center; word-break: break-all; max-width: 260px; }
+        .size-row { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+        .size-row input[type="range"] { flex: 1; margin: 0; }
+        .size-val { color: var(--primary-color); font-weight: 800; font-size: 14px; white-space: nowrap; min-width: 44px; }
+
+        /* ===== FRACTIONS ===== */
+        .frac-op-selector { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin: 14px 0; }
+        .frac-op-btn { background: var(--surface2); border: 2px solid var(--border-color); color: var(--text-muted); padding: 13px 10px; border-radius: 12px; cursor: pointer; font-size: 22px; font-weight: 900; transition: 0.15s; font-family: 'Manrope', sans-serif; }
+        .frac-op-btn:hover, .frac-op-btn.selected { border-color: var(--primary-color); color: var(--primary-color); background: rgba(168,85,247,0.08); }
+        .fraction-row { display: flex; align-items: center; gap: 12px; margin: 18px 0; }
+        .fraction-box { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .fraction-box input { text-align: center; margin: 0; font-size: 20px; font-weight: 700; }
+        .frac-line { width: 100%; height: 3px; background: var(--primary-color); border-radius: 2px; }
+        .frac-lbl { font-size: 9px; color: var(--text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; font-family: 'Unbounded', sans-serif; }
+        .frac-op-mid { font-size: 30px; font-weight: 900; color: var(--primary-color); flex-shrink: 0; width: 36px; text-align: center; }
+        .frac-result-box { margin-top: 18px; padding: 20px; background: var(--surface2); border-radius: 14px; border-left: 4px solid var(--primary-color); text-align: center; display: none; }
+        .frac-main { font-size: 32px; font-weight: 900; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .frac-f { display: inline-flex; flex-direction: column; align-items: center; }
+        .frac-f-line { width: 100%; height: 3px; background: var(--primary-color); border-radius: 2px; margin: 2px 0; }
+        .frac-decimal { font-size: 14px; color: var(--text-muted); margin-top: 8px; }
+
+        /* ===== BIRTHDAY ===== */
+        .life-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-top: 18px; }
+        .life-stat { background: var(--surface2); border: 1.5px solid var(--border-color); border-radius: 14px; padding: 16px; text-align: center; }
+        .life-val { font-size: 24px; font-weight: 900; color: var(--primary-color); font-family: 'Unbounded', sans-serif; }
+        .life-lbl { font-size: 10px; color: var(--text-muted); margin-top: 5px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; font-family: 'Unbounded', sans-serif; }
+        .life-bday { background: rgba(168,85,247,0.08); border-color: var(--primary-color); grid-column: span 2; }
+
+        /* ===== TIMER ===== */
+        .timer-display {
+            font-size: 52px; font-weight: 900; text-align: center;
+            font-family: 'Courier New', monospace; color: var(--primary-color);
+            padding: 18px; background: var(--surface2); border-radius: 14px;
+            border: 1.5px solid var(--border-color); margin: 14px 0; letter-spacing: 4px;
+        }
+        .timer-btns { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+        .timer-quick { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+        .tq-btn { background: var(--surface2); border: 1.5px solid var(--border-color); color: var(--text-muted); padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 700; font-family: 'Manrope', sans-serif; transition: 0.15s; }
+        .tq-btn:hover { border-color: var(--primary-color); color: var(--primary-color); background: var(--primary-glow); }
+        .sec-divider { height: 1px; background: var(--border-color); margin: 22px 0; }
+        .section-label { font-size: 9px; color: var(--primary-color); font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; font-family: 'Unbounded', sans-serif; }
+
+        /* ===== TEXT TOOLS ===== */
+        .text-op-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; margin-top: 12px; }
+        .text-op-btn { background: var(--surface2); border: 1.5px solid var(--border-color); color: var(--text-color); padding: 12px 10px; border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 700; transition: 0.15s; font-family: 'Manrope', sans-serif; }
+        .text-op-btn:hover { border-color: var(--primary-color); color: var(--primary-color); background: rgba(168,85,247,0.06); }
+
+        /* ===== UNIT CONVERTER ===== */
+        .unit-cat-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+        .unit-tab { background: var(--surface2); border: 1.5px solid var(--border-color); color: var(--text-muted); padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 700; transition: 0.15s; font-family: 'Manrope', sans-serif; }
+        .unit-tab:hover, .unit-tab.active { border-color: var(--primary-color); color: var(--primary-color); background: rgba(168,85,247,0.08); }
+        .unit-row { display: flex; gap: 12px; align-items: flex-start; }
+        .unit-col { flex: 1; display: flex; flex-direction: column; gap: 0; }
+        .unit-arrow { display: flex; align-items: center; justify-content: center; padding-top: 36px; color: var(--primary-color); font-size: 22px; flex-shrink: 0; cursor: pointer; }
+        .unit-result { margin-top: 14px; padding: 16px 18px; background: var(--surface2); border-radius: 12px; border-left: 4px solid var(--primary-color); font-size: 18px; font-weight: 800; display: none; cursor: pointer; transition: 0.2s; }
+        .unit-result:hover { background: var(--border-color); }
+        .temp-note { font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 4px; }
+
+        /* ===== COLOR CONVERTER ===== */
+        .color-stage {
+            width: 100%; height: 130px; border-radius: 18px; margin: 0 0 18px;
+            border: 1.5px solid var(--border-color);
+            transition: background-color 0.25s;
+            position: relative; overflow: hidden; cursor: crosshair;
+        }
+        .color-stage-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(to right, white, transparent),
+                        linear-gradient(to bottom, transparent, black);
+            pointer-events: none;
+        }
+        .color-stage-cursor {
+            position: absolute; width: 18px; height: 18px;
+            border-radius: 50%; border: 2.5px solid white;
+            box-shadow: 0 0 0 1.5px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.5);
+            transform: translate(-50%, -50%);
+            pointer-events: none; transition: none;
+        }
+
+        .color-hue-bar {
+            width: 100%; height: 18px; border-radius: 9px;
+            background: linear-gradient(to right,
+                hsl(0,100%,50%), hsl(30,100%,50%), hsl(60,100%,50%),
+                hsl(90,100%,50%), hsl(120,100%,50%), hsl(150,100%,50%),
+                hsl(180,100%,50%), hsl(210,100%,50%), hsl(240,100%,50%),
+                hsl(270,100%,50%), hsl(300,100%,50%), hsl(330,100%,50%), hsl(360,100%,50%));
+            margin: 12px 0 6px; cursor: pointer; position: relative;
+            border: 1.5px solid var(--border-color);
+        }
+        .color-hue-bar input[type=range] {
+            position: absolute; inset: -4px 0; width: 100%; height: calc(100% + 8px);
+            opacity: 0; cursor: pointer; margin: 0; border: none; padding: 0;
+        }
+        .color-hue-thumb {
+            position: absolute; top: 50%; width: 22px; height: 22px;
+            border-radius: 50%; border: 2.5px solid white;
+            box-shadow: 0 0 0 1.5px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.4);
+            transform: translate(-50%, -50%); pointer-events: none;
+            transition: left 0s;
+        }
+        .color-alpha-bar {
+            width: 100%; height: 18px; border-radius: 9px;
+            margin: 10px 0 6px; cursor: pointer; position: relative;
+            border: 1.5px solid var(--border-color);
+            background-image: repeating-conic-gradient(#aaa 0% 25%, transparent 0% 50%);
+            background-size: 10px 10px;
+        }
+        .color-alpha-bar-inner {
+            position: absolute; inset: 0; border-radius: 9px;
+        }
+        .color-alpha-bar input[type=range] {
+            position: absolute; inset: -4px 0; width: 100%; height: calc(100% + 8px);
+            opacity: 0; cursor: pointer; margin: 0; border: none; padding: 0;
+        }
+        .color-alpha-thumb {
+            position: absolute; top: 50%; width: 22px; height: 22px;
+            border-radius: 50%; border: 2.5px solid white;
+            box-shadow: 0 0 0 1.5px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.4);
+            transform: translate(-50%, -50%); pointer-events: none;
+        }
+
+        .color-bottom-row { display: flex; gap: 12px; align-items: center; margin: 14px 0; }
+        .color-swatch-big {
+            width: 52px; height: 52px; border-radius: 12px; flex-shrink: 0;
+            border: 2px solid var(--border-color); cursor: pointer;
+            position: relative; overflow: hidden;
+            background-image: repeating-conic-gradient(#aaa 0% 25%, transparent 0% 50%);
+            background-size: 8px 8px;
+        }
+        .color-swatch-fill { position: absolute; inset: 0; border-radius: 10px; }
+        .color-hex-input-wrap { flex: 1; position: relative; }
+        .color-hex-input-wrap input {
+            font-family: 'Courier New', monospace; font-weight: 700; font-size: 18px;
+            letter-spacing: 2px; text-align: center; padding: 14px 18px; margin: 0;
+            text-transform: uppercase;
+        }
+
+        .color-values { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-top: 4px; }
+        .color-val-box {
+            background: var(--surface2); border: 1.5px solid var(--border-color);
+            border-radius: 14px; padding: 14px 10px; text-align: center;
+            cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;
+        }
+        .color-val-box::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: var(--primary-color); transform: scaleX(0);
+            transition: transform 0.2s; transform-origin: left;
+        }
+        .color-val-box:hover { border-color: var(--primary-color); transform: translateY(-2px); box-shadow: 0 6px 16px var(--primary-glow); }
+        .color-val-box:hover::before { transform: scaleX(1); }
+        .color-val-label { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: var(--text-muted); font-family: 'Unbounded', sans-serif; margin-bottom: 8px; }
+        .color-val-text { font-size: 12px; font-weight: 700; word-break: break-all; font-family: 'Courier New', monospace; }
+
+        .color-presets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+        .color-preset {
+            width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
+            border: 2px solid transparent; transition: 0.2s; flex-shrink: 0;
+        }
+        .color-preset:hover { transform: scale(1.2); border-color: var(--text-color); }
+
+        .color-shades-strip { display: flex; gap: 6px; margin-top: 10px; }
+        .color-shade-chip {
+            flex: 1; height: 36px; border-radius: 8px; cursor: pointer;
+            transition: 0.2s; border: 1.5px solid transparent;
+        }
+        .color-shade-chip:hover { transform: scaleY(1.15); border-color: rgba(255,255,255,0.4); }
+
+        /* ===== GRADIENT GENERATOR ===== */
+        .gradient-preview {
+            width: 100%; height: 100px; border-radius: 16px; margin: 14px 0;
+            border: 1.5px solid var(--border-color); transition: 0.3s; cursor: pointer;
+            position: relative; overflow: hidden;
+        }
+        .gradient-preview:hover::after {
+            content: '📋 Скопировать CSS'; position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.4); color: white; font-weight: 700;
+            font-size: 13px; font-family: 'Manrope', sans-serif;
+        }
+        .gradient-stops { display: flex; flex-direction: column; gap: 10px; margin: 12px 0; }
+        .gradient-stop-row { display: flex; align-items: center; gap: 10px; }
+        .gradient-stop-swatch {
+            width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+            border: 1.5px solid var(--border-color); cursor: pointer; overflow: hidden;
+            position: relative;
+        }
+        .gradient-stop-swatch input[type=color] {
+            position: absolute; inset: -4px; width: calc(100% + 8px); height: calc(100% + 8px);
+            opacity: 0; cursor: pointer; margin: 0; border: none; padding: 0;
+        }
+        .gradient-type-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin: 10px 0; }
+        .gradient-type-btn { background: var(--surface2); border: 1.5px solid var(--border-color); color: var(--text-muted); padding: 10px 8px; border-radius: 10px; cursor: pointer; font-size: 12px; font-weight: 700; transition: 0.15s; font-family: 'Manrope', sans-serif; }
+        .gradient-type-btn.active, .gradient-type-btn:hover { border-color: var(--primary-color); color: var(--primary-color); background: rgba(168,85,247,0.08); }
+        .gradient-css-box { background: var(--surface2); border: 1.5px solid var(--border-color); border-radius: 12px; padding: 12px 14px; font-family: 'Courier New', monospace; font-size: 12px; color: var(--text-muted); word-break: break-all; margin-top: 10px; cursor: pointer; transition: 0.2s; }
+        .gradient-css-box:hover { border-color: var(--primary-color); color: var(--text-color); }
+
+        /* ===== CLICKER ===== */
+        #clickBtn { height: 120px; font-size: 26px; border-radius: 26px; letter-spacing: 0.5px; font-family: 'Unbounded', sans-serif; }
+
+        /* ===== NOTES ===== */
+        .notes-toolbar { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+        .note-tool-btn { background: var(--surface2); border: 1.5px solid var(--border-color); color: var(--text-muted); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 700; transition: 0.15s; font-family: 'Manrope', sans-serif; }
+        .note-tool-btn:hover { border-color: var(--primary-color); color: var(--primary-color); }
+        .note-stats { font-size: 11px; color: var(--text-muted); text-align: right; margin-top: 6px; }
+
+        /* ===== CIPHER ===== */
+        .cipher-mode-row { display: flex; gap: 10px; margin-bottom: 14px; }
+        .cipher-mode-btn { flex: 1; background: var(--surface2); border: 2px solid var(--border-color); color: var(--text-muted); padding: 10px; border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 700; transition: 0.15s; font-family: 'Manrope', sans-serif; }
+        .cipher-mode-btn.active { border-color: var(--primary-color); color: var(--primary-color); background: rgba(168,85,247,0.08); }
+
+        /* ===== TODO ===== */
+        .todo-filter-btn { background: var(--surface2); border: 1.5px solid var(--border-color); color: var(--text-muted); padding: 7px 14px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 700; transition: 0.15s; font-family: 'Manrope', sans-serif; }
+        .todo-filter-btn.active, .todo-filter-btn:hover { border-color: var(--primary-color); color: var(--primary-color); background: rgba(168,85,247,0.08); }
+        .todo-item { display: flex; align-items: center; gap: 12px; background: var(--surface2); border: 1.5px solid var(--border-color); border-radius: 12px; padding: 13px 14px; transition: 0.2s; animation: slideUp 0.25s cubic-bezier(0.16,1,0.3,1); }
+        .todo-item:hover { border-color: rgba(168,85,247,0.3); }
+        .todo-item.done { opacity: 0.5; }
+        .todo-item.done .todo-text { text-decoration: line-through; color: var(--text-muted); }
+        .todo-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border-color); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: 0.2s; font-size: 12px; }
+        .todo-check:hover { border-color: var(--primary-color); background: var(--primary-glow); }
+        .todo-check.checked { background: var(--primary-color); border-color: var(--primary-color); color: white; }
+        .todo-text { flex: 1; font-size: 14px; font-weight: 600; cursor: pointer; word-break: break-word; }
+        .todo-del { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 4px; border-radius: 6px; transition: 0.15s; flex-shrink: 0; }
+        .todo-del:hover { color: var(--danger); background: rgba(255,71,87,0.1); }
+
+        select option { background: var(--surface-color); }
+    </style>
+</head>
+<body>
+
+<div id="overlay" onclick="toggleMenu()"></div>
+
+<header>
+    <div class="header-left">
+        <button class="header-btn" onclick="toggleMenu()">☰</button>
+        <div class="logo" onclick="openTab('home')">MiniTools</div>
+        <div class="logo-short" onclick="openTab('home')">MT</div>
+    </div>
+    <div class="header-center" id="pageTitle">Главная</div>
+    <div class="header-right">
+        <button id="themeToggle" class="header-btn" onclick="toggleTheme()">☀️</button>
+    </div>
+</header>
+
+<nav id="sidebar">
+    <div class="sidebar-header">
+        <span class="sidebar-logo">MiniTools</span>
+        <button class="sidebar-close" onclick="toggleMenu()">✕</button>
+    </div>
+    <div class="sidebar-scroll">
+        <div class="sidebar-cat">Главное</div>
+        <button class="tab-btn active" onclick="openTab('home')"><span class="t-icon">🏠</span>Главная</button>
+        <button class="tab-btn" onclick="openTab('notes')"><span class="t-icon">📝</span>Быстрые Заметки</button>
+
+        <div class="sidebar-cat">Калькуляторы</div>
+        <button class="tab-btn" onclick="openTab('calculator')"><span class="t-icon">🧮</span>Калькулятор</button>
+        <button class="tab-btn" onclick="openTab('fractions')"><span class="t-icon">½</span>Дроби</button>
+        <button class="tab-btn" onclick="openTab('percent')"><span class="t-icon">📊</span>Проценты</button>
+        <button class="tab-btn" onclick="openTab('currency')"><span class="t-icon">💵</span>Конвертер Валют</button>
+        <button class="tab-btn" onclick="openTab('units')"><span class="t-icon">📐</span>Конвертер Единиц</button>
+
+        <div class="sidebar-cat">Генераторы</div>
+        <button class="tab-btn" onclick="openTab('password')"><span class="t-icon">🔑</span>Пароли</button>
+        <button class="tab-btn" onclick="openTab('nickname')"><span class="t-icon">👾</span>Никнеймы</button>
+        <button class="tab-btn" onclick="openTab('randomizer')"><span class="t-icon">🎲</span>Рандомайзер</button>
+        <button class="tab-btn" onclick="openTab('qrcode')"><span class="t-icon">📱</span>QR-Генератор</button>
+        <button class="tab-btn" onclick="openTab('colorconv')"><span class="t-icon">🎨</span>Конвертер Цветов</button>
+        <button class="tab-btn" onclick="openTab('gradient')"><span class="t-icon">🌈</span>Генератор Градиентов</button>
+
+        <div class="sidebar-cat">Инструменты</div>
+        <button class="tab-btn" onclick="openTab('texttools')"><span class="t-icon">✏️</span>Текст-Инструменты</button>
+        <button class="tab-btn" onclick="openTab('timer')"><span class="t-icon">⏱️</span>Таймер / Секундомер</button>
+        <button class="tab-btn" onclick="openTab('cipher')"><span class="t-icon">🕵️</span>Шифратор</button>
+        <button class="tab-btn" onclick="openTab('numconv')"><span class="t-icon">🔢</span>Числовые системы</button>
+        <button class="tab-btn" onclick="openTab('bodyinfo')"><span class="t-icon">💪</span>Калькулятор тела</button>
+        <button class="tab-btn" onclick="openTab('loan')"><span class="t-icon">🏦</span>Кредитный калькулятор</button>
+
+        <div class="sidebar-cat">Прочее</div>
+        <button class="tab-btn" onclick="openTab('birthday')"><span class="t-icon">🎂</span>Анализ Жизни</button>
+        <button class="tab-btn" onclick="openTab('todo')"><span class="t-icon">✅</span>Список Задач</button>
+        <button class="tab-btn" onclick="openTab('clicker')"><span class="t-icon">⚡</span>Кликер</button>
+    </div>
+</nav>
+
+<main>
+
+    <!-- ГЛАВНАЯ -->
+    <div id="home" class="section active">
+
+        <!-- Hero -->
+        <div class="hero">
+            <h2>MiniTools PRO</h2>
+            <div class="info-badge">v6.0 — 22 инструмента · Всё в одном</div>
+            <p>Твой личный цифровой швейцарский нож — быстро, без рекламы, без регистрации. Всё работает прямо в браузере.</p>
+        </div>
+
+        <!-- Stats strip -->
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:28px;">
+            <div style="background:var(--surface-color); border:1.5px solid var(--border-color); border-radius:16px; padding:16px 10px; text-align:center;">
+                <div style="font-size:26px; font-weight:900; color:var(--primary-color); font-family:'Unbounded',sans-serif; line-height:1;">22</div>
+                <div style="font-size:9px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:1.5px; margin-top:5px; font-family:'Unbounded',sans-serif;">инструмента</div>
+            </div>
+            <div style="background:var(--surface-color); border:1.5px solid var(--border-color); border-radius:16px; padding:16px 10px; text-align:center;">
+                <div style="font-size:26px; font-weight:900; color:#2ed573; font-family:'Unbounded',sans-serif; line-height:1;">0</div>
+                <div style="font-size:9px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:1.5px; margin-top:5px; font-family:'Unbounded',sans-serif;">рекламы</div>
+            </div>
+            <div style="background:var(--surface-color); border:1.5px solid var(--border-color); border-radius:16px; padding:16px 10px; text-align:center;">
+                <div style="font-size:26px; font-weight:900; color:#1e90ff; font-family:'Unbounded',sans-serif; line-height:1;">∞</div>
+                <div style="font-size:9px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:1.5px; margin-top:5px; font-family:'Unbounded',sans-serif;">бесплатно</div>
+            </div>
+            <div style="background:var(--surface-color); border:1.5px solid var(--border-color); border-radius:16px; padding:16px 10px; text-align:center;">
+                <div style="font-size:26px; font-weight:900; color:#ffa502; font-family:'Unbounded',sans-serif; line-height:1;" id="homeClickStat">0</div>
+                <div style="font-size:9px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:1.5px; margin-top:5px; font-family:'Unbounded',sans-serif;">твоих кликов</div>
+            </div>
+        </div>
+
+        <!-- Feature highlights -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; margin-bottom:28px;">
+            <div style="background:linear-gradient(135deg,rgba(168,85,247,0.12),rgba(255,110,247,0.06)); border:1.5px solid rgba(168,85,247,0.3); border-radius:18px; padding:20px;">
+                <div style="font-size:28px; margin-bottom:10px;">🔒</div>
+                <div style="font-weight:800; font-size:14px; margin-bottom:6px;">Работает офлайн</div>
+                <div style="font-size:12px; color:var(--text-muted); line-height:1.6;">Всё работает без интернета. Сохрани страницу — и используй хоть в самолёте.</div>
+            </div>
+            <div style="background:linear-gradient(135deg,rgba(30,144,255,0.1),rgba(46,213,115,0.06)); border:1.5px solid rgba(30,144,255,0.25); border-radius:18px; padding:20px;">
+                <div style="font-size:28px; margin-bottom:10px;">💾</div>
+                <div style="font-weight:800; font-size:14px; margin-bottom:6px;">Автосохранение</div>
+                <div style="font-size:12px; color:var(--text-muted); line-height:1.6;">Заметки, задачи и счётчик кликов сохраняются в браузере и никуда не уходят.</div>
+            </div>
+            <div style="background:linear-gradient(135deg,rgba(255,165,2,0.1),rgba(255,71,87,0.06)); border:1.5px solid rgba(255,165,2,0.25); border-radius:18px; padding:20px;">
+                <div style="font-size:28px; margin-bottom:10px;">📱</div>
+                <div style="font-weight:800; font-size:14px; margin-bottom:6px;">Работает на телефоне</div>
+                <div style="font-size:12px; color:var(--text-muted); line-height:1.6;">Полностью адаптивный дизайн. Удобно как на компьютере, так и на смартфоне.</div>
+            </div>
+        </div>
+
+        <!-- Tools grid -->
+        <div class="home-cats">
+            <div>
+                <div class="cat-head"><span class="cat-lbl">📝 Заметки и задачи</span><div class="cat-line"></div></div>
+                <div class="dashboard">
+                    <div class="dash-card" onclick="openTab('notes')"><div class="dash-icon">📝</div><span>Заметки</span></div>
+                    <div class="dash-card" onclick="openTab('todo')"><div class="dash-icon">✅</div><span>Задачи</span></div>
+                </div>
+            </div>
+            <div>
+                <div class="cat-head"><span class="cat-lbl">🧮 Калькуляторы</span><div class="cat-line"></div></div>
+                <div class="dashboard">
+                    <div class="dash-card" onclick="openTab('calculator')"><div class="dash-icon">🧮</div><span>Калькулятор</span></div>
+                    <div class="dash-card" onclick="openTab('fractions')"><div class="dash-icon">½</div><span>Дроби</span></div>
+                    <div class="dash-card" onclick="openTab('percent')"><div class="dash-icon">📊</div><span>Проценты</span></div>
+                    <div class="dash-card" onclick="openTab('currency')"><div class="dash-icon">💵</div><span>Валюты</span></div>
+                    <div class="dash-card" onclick="openTab('units')"><div class="dash-icon">📐</div><span>Единицы</span></div>
+                    <div class="dash-card" onclick="openTab('bodyinfo')"><div class="dash-icon">💪</div><span>Тело</span></div>
+                    <div class="dash-card" onclick="openTab('loan')"><div class="dash-icon">🏦</div><span>Кредит</span></div>
+                </div>
+            </div>
+            <div>
+                <div class="cat-head"><span class="cat-lbl">🎲 Генераторы</span><div class="cat-line"></div></div>
+                <div class="dashboard">
+                    <div class="dash-card" onclick="openTab('password')"><div class="dash-icon">🔑</div><span>Пароли</span></div>
+                    <div class="dash-card" onclick="openTab('nickname')"><div class="dash-icon">👾</div><span>Никнеймы</span></div>
+                    <div class="dash-card" onclick="openTab('randomizer')"><div class="dash-icon">🎲</div><span>Рандомайзер</span></div>
+                    <div class="dash-card" onclick="openTab('qrcode')"><div class="dash-icon">📱</div><span>QR-Коды</span></div>
+                    <div class="dash-card" onclick="openTab('colorconv')"><div class="dash-icon">🎨</div><span>Цвета</span></div>
+                    <div class="dash-card" onclick="openTab('gradient')"><div class="dash-icon">🌈</div><span>Градиенты</span></div>
+                </div>
+            </div>
+            <div>
+                <div class="cat-head"><span class="cat-lbl">🛠️ Инструменты</span><div class="cat-line"></div></div>
+                <div class="dashboard">
+                    <div class="dash-card" onclick="openTab('texttools')"><div class="dash-icon">✏️</div><span>Текст</span></div>
+                    <div class="dash-card" onclick="openTab('timer')"><div class="dash-icon">⏱️</div><span>Таймер</span></div>
+                    <div class="dash-card" onclick="openTab('cipher')"><div class="dash-icon">🕵️</div><span>Шифратор</span></div>
+                    <div class="dash-card" onclick="openTab('numconv')"><div class="dash-icon">🔢</div><span>Числа</span></div>
+                </div>
+            </div>
+            <div>
+                <div class="cat-head"><span class="cat-lbl">🎮 Прочее</span><div class="cat-line"></div></div>
+                <div class="dashboard">
+                    <div class="dash-card" onclick="openTab('birthday')"><div class="dash-icon">🎂</div><span>Анализ жизни</span></div>
+                    <div class="dash-card" onclick="openTab('clicker')"><div class="dash-icon">⚡</div><span>Кликер</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Changelog / what's new -->
+        <div style="margin-top:28px; background:var(--surface-color); border:1.5px solid var(--border-color); border-radius:20px; padding:22px;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+                <div style="font-size:18px;">🆕</div>
+                <div style="font-weight:900; font-size:14px; font-family:'Unbounded',sans-serif; color:var(--primary-color);">Что нового в v6.0</div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <div style="display:flex; gap:12px; align-items:flex-start;">
+                    <div style="background:rgba(168,85,247,0.15); color:var(--primary-color); border-radius:8px; padding:4px 10px; font-size:10px; font-weight:800; flex-shrink:0; font-family:'Unbounded',sans-serif;">NEW</div>
+                    <div style="font-size:13px; color:var(--text-muted); line-height:1.5;"><b style="color:var(--text-color);">🔢 Конвертер числовых систем</b> — HEX, DEC, BIN, OCT одним нажатием</div>
+                </div>
+                <div style="display:flex; gap:12px; align-items:flex-start;">
+                    <div style="background:rgba(168,85,247,0.15); color:var(--primary-color); border-radius:8px; padding:4px 10px; font-size:10px; font-weight:800; flex-shrink:0; font-family:'Unbounded',sans-serif;">NEW</div>
+                    <div style="font-size:13px; color:var(--text-muted); line-height:1.5;"><b style="color:var(--text-color);">⚡ Кликер 2.0</b> — 14 интересных фактов, 7 достижений, анимации</div>
+                </div>
+                <div style="display:flex; gap:12px; align-items:flex-start;">
+                    <div style="background:rgba(46,213,115,0.15); color:#2ed573; border-radius:8px; padding:4px 10px; font-size:10px; font-weight:800; flex-shrink:0; font-family:'Unbounded',sans-serif;">UPD</div>
+                    <div style="font-size:13px; color:var(--text-muted); line-height:1.5;"><b style="color:var(--text-color);">Главная страница</b> — статистика, карточки с описанием, changelog</div>
+                </div>
+                <div style="display:flex; gap:12px; align-items:flex-start;">
+                    <div style="background:rgba(30,144,255,0.15); color:#1e90ff; border-radius:8px; padding:4px 10px; font-size:10px; font-weight:800; flex-shrink:0; font-family:'Unbounded',sans-serif;">FIX</div>
+                    <div style="font-size:13px; color:var(--text-muted); line-height:1.5;"><b style="color:var(--text-color);">Таймер</b> — кнопки теперь реагируют корректно во время отсчёта</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tip of the day -->
+        <div style="margin-top:12px; background:linear-gradient(135deg,rgba(255,165,2,0.08),rgba(255,71,87,0.05)); border:1.5px solid rgba(255,165,2,0.25); border-radius:18px; padding:18px 20px; display:flex; gap:14px; align-items:flex-start;">
+            <div style="font-size:24px; flex-shrink:0;">💡</div>
+            <div>
+                <div style="font-weight:800; font-size:12px; color:#ffa502; text-transform:uppercase; letter-spacing:1px; font-family:'Unbounded',sans-serif; margin-bottom:5px;">Совет дня</div>
+                <div style="font-size:13px; color:var(--text-muted); line-height:1.6;" id="tipOfDay"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ЗАМЕТКИ -->
+    <div id="notes" class="section card">
+        <h2 class="center-title">📝 Быстрые Заметки</h2>
+        <p class="center-sub">Автосохранение в браузере</p>
+        <div class="notes-toolbar">
+            <button class="note-tool-btn" onclick="insertNote('• ')">• Список</button>
+            <button class="note-tool-btn" onclick="insertNote('✅ ')">✅ Задача</button>
+            <button class="note-tool-btn" onclick="insertNote('⭐ ')">⭐ Важно</button>
+            <button class="note-tool-btn" onclick="insertNote('---\n')">─ Разделитель</button>
+            <button class="note-tool-btn" onclick="insertNote(new Date().toLocaleDateString('ru-RU')+' ')">📅 Дата</button>
+        </div>
+        <textarea id="quickNotesArea" oninput="saveNotes()" placeholder="Список покупок, идеи, важные ссылки..." style="height:300px; resize:none;"></textarea>
+        <div class="note-stats" id="noteStats">0 символов · 0 слов</div>
+        <button class="btn" onclick="clearNotes()" style="background:transparent; border:1.5px solid var(--border-color); color:var(--text-color); box-shadow:none; margin-top:8px;">🗑️ Очистить всё</button>
+    </div>
+
+    <!-- КАЛЬКУЛЯТОР -->
+    <div id="calculator" class="section card">
+        <h2 class="center-title">🧮 Калькулятор</h2>
+        <div id="calcDisplay">
+            <div id="calcExpression"></div>
+            <div id="calcMain">0</div>
+        </div>
+        <div class="calc-grid">
+            <button class="calc-btn" onclick="clearCalc()" style="color:var(--danger)">C</button>
+            <button class="calc-btn op" onclick="backspaceCalc()">⌫</button>
+            <button class="calc-btn op" onclick="appendCalc('%')">%</button>
+            <button class="calc-btn op" onclick="appendCalc('/')">÷</button>
+            <button class="calc-btn" onclick="appendCalc('7')">7</button>
+            <button class="calc-btn" onclick="appendCalc('8')">8</button>
+            <button class="calc-btn" onclick="appendCalc('9')">9</button>
+            <button class="calc-btn op" onclick="appendCalc('*')">×</button>
+            <button class="calc-btn" onclick="appendCalc('4')">4</button>
+            <button class="calc-btn" onclick="appendCalc('5')">5</button>
+            <button class="calc-btn" onclick="appendCalc('6')">6</button>
+            <button class="calc-btn op" onclick="appendCalc('-')">−</button>
+            <button class="calc-btn" onclick="appendCalc('1')">1</button>
+            <button class="calc-btn" onclick="appendCalc('2')">2</button>
+            <button class="calc-btn" onclick="appendCalc('3')">3</button>
+            <button class="calc-btn op" onclick="appendCalc('+')">+</button>
+            <button class="calc-btn op" onclick="appendCalc('(')">(</button>
+            <button class="calc-btn" onclick="appendCalc('0')">0</button>
+            <button class="calc-btn" onclick="appendCalc('.')">.</button>
+            <button class="calc-btn" onclick="calculate()" style="background:var(--primary-color);color:white;border:none;box-shadow:0 4px 15px var(--primary-glow);">＝</button>
+            <button class="calc-btn op" onclick="appendCalc(')')">)</button>
+            <button class="calc-btn op" onclick="appendCalc('Math.sqrt(')">√</button>
+            <button class="calc-btn op" onclick="appendCalc('**2')" style="font-size:14px;">x²</button>
+            <button class="calc-btn op" onclick="calcSign()" style="font-size:14px;">+/−</button>
+        </div>
+    </div>
+
+    <!-- ДРОБИ -->
+    <div id="fractions" class="section card">
+        <h2 class="center-title">½ Калькулятор Дробей</h2>
+        <p class="center-sub">Результат автоматически сокращается</p>
+        <div class="frac-op-selector">
+            <button class="frac-op-btn selected" id="fop_add" onclick="selectFracOp('add')">+</button>
+            <button class="frac-op-btn" id="fop_sub" onclick="selectFracOp('sub')">−</button>
+            <button class="frac-op-btn" id="fop_mul" onclick="selectFracOp('mul')">×</button>
+            <button class="frac-op-btn" id="fop_div" onclick="selectFracOp('div')">÷</button>
+        </div>
+        <div class="fraction-row">
+            <div class="fraction-box">
+                <span class="frac-lbl">Числитель</span>
+                <input type="number" id="fn1" placeholder="3" style="text-align:center;">
+                <div class="frac-line"></div>
+                <input type="number" id="fd1" placeholder="4" style="text-align:center;">
+                <span class="frac-lbl">Знаменатель</span>
+            </div>
+            <div class="frac-op-mid" id="fracOpDisplay">+</div>
+            <div class="fraction-box">
+                <span class="frac-lbl">Числитель</span>
+                <input type="number" id="fn2" placeholder="1" style="text-align:center;">
+                <div class="frac-line"></div>
+                <input type="number" id="fd2" placeholder="2" style="text-align:center;">
+                <span class="frac-lbl">Знаменатель</span>
+            </div>
+        </div>
+        <button class="btn" onclick="calcFraction()">= Вычислить</button>
+        <div class="frac-result-box" id="fracResult">
+            <div class="frac-main" id="fracMain"></div>
+            <div class="frac-decimal" id="fracDecimal"></div>
+        </div>
+    </div>
+
+    <!-- КОНВЕРТЕР ЕДИНИЦ (новый!) -->
+    <div id="units" class="section card">
+        <h2 class="center-title">📐 Конвертер Единиц</h2>
+        <p class="center-sub">Длина, масса, температура, объём и другие</p>
+        <div class="unit-cat-tabs">
+            <button class="unit-tab active" onclick="setUnitCat('length', this)">📏 Длина</button>
+            <button class="unit-tab" onclick="setUnitCat('weight', this)">⚖️ Масса</button>
+            <button class="unit-tab" onclick="setUnitCat('temp', this)">🌡️ Темп.</button>
+            <button class="unit-tab" onclick="setUnitCat('volume', this)">💧 Объём</button>
+            <button class="unit-tab" onclick="setUnitCat('area', this)">📦 Площадь</button>
+            <button class="unit-tab" onclick="setUnitCat('speed', this)">💨 Скорость</button>
+            <button class="unit-tab" onclick="setUnitCat('time', this)">⏰ Время</button>
+            <button class="unit-tab" onclick="setUnitCat('digital', this)">💾 Данные</button>
+        </div>
+        <div class="unit-row">
+            <div class="unit-col">
+                <span class="frac-lbl" style="padding:0 0 4px 2px;">Значение</span>
+                <input type="number" id="unitVal" placeholder="100" oninput="convertUnit()">
+                <select id="unitFrom" onchange="convertUnit()"></select>
+            </div>
+            <div class="unit-arrow" onclick="swapUnits()" title="Поменять местами">⇄</div>
+            <div class="unit-col">
+                <span class="frac-lbl" style="padding:0 0 4px 2px;">Результат</span>
+                <input type="number" id="unitResult" placeholder="—" readonly style="font-weight:800; color:var(--primary-color);">
+                <select id="unitTo" onchange="convertUnit()"></select>
+            </div>
+        </div>
+        <div class="unit-result" id="unitResultBox" onclick="copyResult(this)"></div>
+        <div class="copy-hint">кликни результат чтобы скопировать</div>
+    </div>
+
+    <!-- ВАЛЮТЫ -->
+    <div id="currency" class="section card">
+        <h2 class="center-title">💵 Конвертер Валют</h2>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <input type="number" id="curVal" value="1" placeholder="Сумма" style="flex:2;">
+            <select id="curFrom" style="flex:1;" onchange="convert()">
+                <option value="USD">🇺🇸 USD</option>
+                <option value="EUR">🇪🇺 EUR</option>
+                <option value="RUB">🇷🇺 RUB</option>
+                <option value="UAH">🇺🇦 UAH</option>
+                <option value="KZT">🇰🇿 KZT</option>
+                <option value="BYN">🇧🇾 BYN</option>
+                <option value="GBP">🇬🇧 GBP</option>
+                <option value="CNY">🇨🇳 CNY</option>
+                <option value="TRY">🇹🇷 TRY</option>
+            </select>
+        </div>
+        <p style="text-align:center; margin:4px 0; color:var(--text-muted); font-weight:800; font-size:18px;">↕</p>
+        <select id="curTo" onchange="convert()">
+            <option value="RUB">🇷🇺 RUB — Рубль</option>
+            <option value="USD">🇺🇸 USD — Доллар</option>
+            <option value="EUR">🇪🇺 EUR — Евро</option>
+            <option value="UAH">🇺🇦 UAH — Гривна</option>
+            <option value="KZT">🇰🇿 KZT — Тенге</option>
+            <option value="BYN">🇧🇾 BYN — Бел. рубль</option>
+            <option value="GBP">🇬🇧 GBP — Фунт</option>
+            <option value="CNY">🇨🇳 CNY — Юань</option>
+            <option value="TRY">🇹🇷 TRY — Лира</option>
+        </select>
+        <button class="btn" onclick="convert()">Конвертировать</button>
+        <div class="result-box" id="curRes" onclick="copyResult(this)">...</div>
+        <div class="copy-hint">кликни чтобы скопировать</div>
+        <div class="rates-card" id="ratesDisplay"></div>
+    </div>
+
+    <!-- РАНДОМАЙЗЕР -->
+    <div id="randomizer" class="section card">
+        <h2 class="center-title">🎲 Рандомайзер</h2>
+        <p class="center-sub">Случайное число в заданном диапазоне</p>
+        <div style="display:flex; gap:14px;">
+            <div style="flex:1;"><div class="frac-lbl" style="margin-bottom:4px;">ОТ</div><input type="number" id="randMin" value="1"></div>
+            <div style="flex:1;"><div class="frac-lbl" style="margin-bottom:4px;">ДО</div><input type="number" id="randMax" value="100"></div>
+        </div>
+        <button class="btn" onclick="genRandom()">🎲 Сгенерировать</button>
+        <div class="result-box" id="randRes" style="font-size:48px;" onclick="copyResult(this)">🎲</div>
+        <div style="margin-top:18px;">
+            <div class="frac-lbl" style="margin-bottom:8px;">Или выбери из списка</div>
+            <textarea id="randList" rows="3" placeholder="Введи варианты через запятую: орёл, решка, ещё что-то..." style="resize:none;"></textarea>
+            <button class="btn" onclick="genFromList()" style="margin-top:8px; background:var(--surface2); border:1.5px solid var(--border-color); color:var(--text-color); box-shadow:none;">🎯 Выбрать случайно</button>
+            <div class="result-box" id="randListRes" style="font-size:20px; display:none;" onclick="copyResult(this)"></div>
+        </div>
+    </div>
+
+    <!-- QR КОД -->
+    <div id="qrcode" class="section card">
+        <h2 class="center-title">📱 QR-Генератор</h2>
+        <p class="center-sub">Работает без интернета — сканируется любым телефоном</p>
+        <input type="text" id="qrInput" placeholder="https://youtube.com или любой текст">
+        <div class="size-row">
+            <span class="frac-lbl">Размер:</span>
+            <input type="range" id="qrSize" min="128" max="400" value="256" oninput="document.getElementById('qrSizeVal').innerText=this.value+'px'">
+            <span class="size-val" id="qrSizeVal">256px</span>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <div style="flex:1;">
+                <div class="frac-lbl" style="margin-bottom:4px;">Фон</div>
+                <input type="color" id="qrColorLight" value="#ffffff" onchange="generateQR()" style="width:100%;height:44px;border-radius:10px;border:1.5px solid var(--border-color);cursor:pointer;padding:4px;background:none;margin:0;">
+            </div>
+            <div style="flex:1;">
+                <div class="frac-lbl" style="margin-bottom:4px;">Код</div>
+                <input type="color" id="qrColorDark" value="#000000" onchange="generateQR()" style="width:100%;height:44px;border-radius:10px;border:1.5px solid var(--border-color);cursor:pointer;padding:4px;background:none;margin:0;">
+            </div>
+        </div>
+        <button class="btn" onclick="generateQR()">✨ Создать QR-код</button>
+        <div class="qr-output" id="qrDisplay">
+            <div id="qrCanvas" style="border-radius:12px; overflow:hidden;"></div>
+            <div class="qr-text-preview" id="qrTextPreview"></div>
+            <button class="btn" onclick="downloadQR()" style="background:var(--surface-color); color:var(--text-color); border:1.5px solid var(--primary-color); width:auto; padding:11px 24px; margin-top:0; box-shadow:none;">💾 Скачать PNG</button>
+        </div>
+    </div>
+
+    <!-- КОНВЕРТЕР ЦВЕТОВ -->
+    <div id="colorconv" class="section card">
+        <h2 class="center-title">🎨 Конвертер Цветов</h2>
+        <p class="center-sub">Профессиональный пикер цветов</p>
+
+        <!-- Saturation/Brightness canvas -->
+        <div class="color-stage" id="colorStage">
+            <div class="color-stage-overlay"></div>
+            <div class="color-stage-cursor" id="stageCursor" style="left:80%;top:20%;"></div>
+        </div>
+
+        <!-- Hue bar -->
+        <div class="color-hue-bar">
+            <input type="range" id="hueRange" min="0" max="360" value="276" oninput="onHueChange()">
+            <div class="color-hue-thumb" id="hueThumb" style="left:76.6%;background:hsl(276,100%,50%);"></div>
+        </div>
+
+        <!-- Alpha bar -->
+        <div class="color-alpha-bar">
+            <div class="color-alpha-bar-inner" id="alphaBarInner"></div>
+            <input type="range" id="alphaRange" min="0" max="100" value="100" oninput="onAlphaChange()">
+            <div class="color-alpha-thumb" id="alphaThumb" style="left:100%;"></div>
+        </div>
+
+        <!-- Swatch + HEX input -->
+        <div class="color-bottom-row">
+            <div class="color-swatch-big">
+                <div class="color-swatch-fill" id="colorSwatchFill" style="background:#a855f7;"></div>
+            </div>
+            <div class="color-hex-input-wrap">
+                <input type="text" id="colorHexIn" value="#A855F7" placeholder="#RRGGBB" oninput="colorFromHex()" maxlength="7">
+            </div>
+        </div>
+
+        <!-- Values -->
+        <div class="color-values">
+            <div class="color-val-box" onclick="copyText(document.getElementById('cvHex').innerText, this)">
+                <div class="color-val-label">HEX</div>
+                <div class="color-val-text" id="cvHex">#a855f7</div>
+            </div>
+            <div class="color-val-box" onclick="copyText(document.getElementById('cvRgb').innerText, this)">
+                <div class="color-val-label">RGB</div>
+                <div class="color-val-text" id="cvRgb">168, 85, 247</div>
+            </div>
+            <div class="color-val-box" onclick="copyText(document.getElementById('cvHsl').innerText, this)">
+                <div class="color-val-label">HSL</div>
+                <div class="color-val-text" id="cvHsl">276°, 91%, 65%</div>
+            </div>
+        </div>
+        <div class="copy-hint" style="margin-top:8px;">кликни на блок чтобы скопировать</div>
+
+        <!-- Preset colours -->
+        <div class="sec-divider"></div>
+        <div class="section-label">Пресеты</div>
+        <div class="color-presets" id="colorPresets"></div>
+
+        <!-- Shades -->
+        <div class="sec-divider"></div>
+        <div class="section-label">Оттенки</div>
+        <div class="color-shades-strip" id="colorShades"></div>
+    </div>
+
+    <!-- ГЕНЕРАТОР ГРАДИЕНТОВ (новый!) -->
+    <div id="gradient" class="section card">
+        <h2 class="center-title">🌈 Градиенты</h2>
+        <p class="center-sub">Создавай красивые CSS-градиенты</p>
+
+        <div class="gradient-preview" id="gradientPreview" onclick="copyGradientCSS()"></div>
+
+        <div class="gradient-type-row">
+            <button class="gradient-type-btn active" id="gt_linear" onclick="setGradType('linear',this)">→ Линейный</button>
+            <button class="gradient-type-btn" id="gt_radial" onclick="setGradType('radial',this)">◎ Радиальный</button>
+            <button class="gradient-type-btn" id="gt_conic" onclick="setGradType('conic',this)">🌀 Конический</button>
+        </div>
+
+        <div id="gradAngleWrap" style="margin:8px 0;">
+            <div class="frac-lbl" style="margin-bottom:4px;">Угол: <span id="gradAngleVal" style="color:var(--primary-color);">135°</span></div>
+            <input type="range" id="gradAngle" min="0" max="360" value="135" oninput="document.getElementById('gradAngleVal').innerText=this.value+'°'; renderGradient();" style="margin:4px 0;">
+        </div>
+
+        <div class="gradient-stops" id="gradientStops"></div>
+        <button onclick="addGradStop()" style="background:none;border:1.5px dashed var(--border-color);color:var(--text-muted);padding:10px;border-radius:12px;cursor:pointer;font-size:13px;font-weight:700;width:100%;font-family:'Manrope',sans-serif;transition:0.15s;margin-top:4px;" onmouseover="this.style.borderColor='var(--primary-color)';this.style.color='var(--primary-color)'" onmouseout="this.style.borderColor='var(--border-color)';this.style.color='var(--text-muted)'">+ Добавить цвет</button>
+
+        <div class="sec-divider"></div>
+        <div class="section-label">CSS-код</div>
+        <div class="gradient-css-box" id="gradientCSS" onclick="copyGradientCSS()"></div>
+        <div class="copy-hint">кликни чтобы скопировать CSS</div>
+
+        <div class="sec-divider"></div>
+        <div class="section-label">Готовые градиенты</div>
+        <div id="gradPresets" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(80px,1fr)); gap:10px; margin-top:8px;"></div>
+    </div>
+
+    <!-- ТЕКСТ-ИНСТРУМЕНТЫ -->
+    <div id="texttools" class="section card">
+        <h2 class="center-title">✏️ Текст-Инструменты</h2>
+        <p class="center-sub">Преобразуй текст в любой формат</p>
+        <textarea id="ttInput" rows="5" placeholder="Введи текст здесь..." oninput="ttAutoStats()"></textarea>
+        <div class="note-stats" id="ttStats">0 символов · 0 слов</div>
+        <div class="text-op-grid">
+            <button class="text-op-btn" onclick="ttOp('upper')">🔠 ЗАГЛАВНЫЕ</button>
+            <button class="text-op-btn" onclick="ttOp('lower')">🔡 строчные</button>
+            <button class="text-op-btn" onclick="ttOp('title')">📖 Каждое Слово</button>
+            <button class="text-op-btn" onclick="ttOp('reverse')">↩️ Перевернуть</button>
+            <button class="text-op-btn" onclick="ttOp('trim')">✂️ Убрать пробелы</button>
+            <button class="text-op-btn" onclick="ttOp('removeDups')">🧹 Убрать дубли строк</button>
+            <button class="text-op-btn" onclick="ttOp('sort')">🔤 Сортировать строки</button>
+            <button class="text-op-btn" onclick="ttOp('count')">🔢 Статистика</button>
+        </div>
+        <div class="result-box" id="ttResult" style="font-size:15px; word-break:break-word; text-align:left; padding:16px 18px;" onclick="copyResult(this)">...</div>
+        <div class="copy-hint">кликни чтобы скопировать</div>
+    </div>
+
+    <!-- ТАЙМЕР -->
+    <div id="timer" class="section card">
+        <h2 class="center-title">⏱️ Таймер / Секундомер</h2>
+
+        <div class="section-label">Секундомер</div>
+        <div class="timer-display" id="swDisplay">00:00.0</div>
+        <div class="timer-btns">
+            <button class="btn timer-btn-run" id="swStartBtn" onclick="swStartFn()">▶ Старт</button>
+            <button class="btn timer-btn-stop" id="swPauseBtn" onclick="swPauseFn()">⏸ Стоп</button>
+            <button class="btn timer-btn-reset" onclick="swResetFn()">↺ Сброс</button>
+        </div>
+
+        <div class="sec-divider"></div>
+
+        <div class="section-label">Обратный отсчёт</div>
+        <div style="display:flex; gap:10px;">
+            <input type="number" id="timerHour" placeholder="Ч" min="0" max="99" style="flex:1; text-align:center;">
+            <input type="number" id="timerMin" placeholder="М" min="0" max="59" style="flex:1; text-align:center;">
+            <input type="number" id="timerSec" placeholder="С" min="0" max="59" style="flex:1; text-align:center;">
+        </div>
+        <div class="timer-quick">
+            <button class="tq-btn" onclick="setTimer(0,1,0)">1 мин</button>
+            <button class="tq-btn" onclick="setTimer(0,3,0)">3 мин</button>
+            <button class="tq-btn" onclick="setTimer(0,5,0)">5 мин</button>
+            <button class="tq-btn" onclick="setTimer(0,10,0)">10 мин</button>
+            <button class="tq-btn" onclick="setTimer(0,25,0)">🍅 25 мин</button>
+            <button class="tq-btn" onclick="setTimer(1,0,0)">1 час</button>
+        </div>
+        <div class="timer-display" id="timerDisplay">00:00:00</div>
+        <div class="timer-btns">
+            <button class="btn timer-btn-run" id="timerStartBtn" onclick="timerStartFn()">▶ Старт</button>
+            <button class="btn timer-btn-stop" id="timerPauseBtn" onclick="timerPauseFn()">⏸ Стоп</button>
+            <button class="btn timer-btn-reset" onclick="timerResetFn()">↺ Сброс</button>
+        </div>
+    </div>
+
+    <!-- ШИФРАТОР -->
+    <div id="cipher" class="section card">
+        <h2 class="center-title">🕵️ Шифратор</h2>
+        <p class="center-sub">Base64 и шифр Цезаря</p>
+        <div class="cipher-mode-row">
+            <button class="cipher-mode-btn active" id="cmode_b64" onclick="setCipherMode('b64')">🔐 Base64</button>
+            <button class="cipher-mode-btn" id="cmode_caesar" onclick="setCipherMode('caesar')">⚔️ Цезарь</button>
+            <button class="cipher-mode-btn" id="cmode_rev" onclick="setCipherMode('rev')">↩️ Реверс</button>
+        </div>
+        <div id="caesarShift" style="display:none; margin-bottom:8px;">
+            <div class="frac-lbl" style="margin-bottom:4px;">Сдвиг (1–25): <span id="shiftVal" style="color:var(--primary-color);">3</span></div>
+            <input type="range" id="caesarShiftRange" min="1" max="25" value="3" oninput="document.getElementById('shiftVal').innerText=this.value" style="margin:8px 0;">
+        </div>
+        <textarea id="cipherText" rows="4" placeholder="Введи текст сюда..."></textarea>
+        <div style="display:flex; gap:10px;">
+            <button class="btn" onclick="encodeCipher()" style="flex:1">🔒 Зашифровать</button>
+            <button class="btn" onclick="decodeCipher()" style="flex:1; background:var(--surface-color); border:1.5px solid var(--primary-color); color:var(--text-color); box-shadow:none;">🔓 Расшифровать</button>
+        </div>
+        <div class="result-box" id="cipherRes" onclick="copyResult(this)" style="word-break:break-all; font-size:15px; text-align:left; padding:16px 18px;">...</div>
+        <div class="copy-hint">кликни чтобы скопировать</div>
+    </div>
+
+    <!-- ПАРОЛИ -->
+    <div id="password" class="section card">
+        <h2 class="center-title">🔑 Генератор паролей</h2>
+        <div style="margin-bottom:4px;"><span style="font-weight:700; font-size:14px;">Длина: </span><span id="passLenVal" style="color:var(--primary-color); font-size:22px; font-weight:900; font-family:'Unbounded',sans-serif;">16</span></div>
+        <input type="range" id="passLength" min="6" max="64" value="16" oninput="document.getElementById('passLenVal').innerText=this.value">
+        <label class="switch-wrap"><span>Цифры (0–9)</span><div class="switch"><input type="checkbox" id="p_num" checked><span class="slider"></span></div></label>
+        <label class="switch-wrap"><span>Спецсимволы (!@#$)</span><div class="switch"><input type="checkbox" id="p_sym" checked><span class="slider"></span></div></label>
+        <label class="switch-wrap"><span>Заглавные буквы (A–Z)</span><div class="switch"><input type="checkbox" id="p_up" checked><span class="slider"></span></div></label>
+        <label class="switch-wrap"><span>Похожие символы (0/O, 1/l)</span><div class="switch"><input type="checkbox" id="p_ambig"><span class="slider"></span></div></label>
+        <button class="btn" onclick="genPass()">Сгенерировать</button>
+        <div class="result-box" id="passRes" onclick="copyResult(this)" style="font-size:17px; word-break:break-all; letter-spacing:1px; font-family:'Courier New',monospace;">****</div>
+        <div id="passStrength" style="display:none; margin-top:10px; padding:10px 14px; border-radius:10px; font-size:13px; font-weight:700; text-align:center;"></div>
+        <div class="copy-hint">кликни чтобы скопировать</div>
+    </div>
+
+    <!-- НИКНЕЙМЫ -->
+    <div id="nickname" class="section card">
+        <h2 class="center-title">👾 Генератор Никнеймов</h2>
+        <label class="switch-wrap"><span>Капсом (ВСЁ ЗАГЛАВНЫМИ)</span><div class="switch"><input type="checkbox" id="n_up"><span class="slider"></span></div></label>
+        <label class="switch-wrap"><span>Цифры в конце</span><div class="switch"><input type="checkbox" id="n_num" checked><span class="slider"></span></div></label>
+        <label class="switch-wrap"><span>Приставка (xX_, __, II)</span><div class="switch"><input type="checkbox" id="n_pre"><span class="slider"></span></div></label>
+        <button class="btn" onclick="genNick()">🎮 Создать ник</button>
+        <div class="result-box" id="nickRes" onclick="copyResult(this)" style="font-size:24px; font-family:'Unbounded',sans-serif; letter-spacing:-0.5px;">Player</div>
+        <div class="copy-hint">кликни чтобы скопировать</div>
+    </div>
+
+    <!-- ПРОЦЕНТЫ -->
+    <div id="percent" class="section card">
+        <h2 class="center-title">📊 Проценты</h2>
+        <div style="background:var(--surface2); border-radius:14px; padding:18px; margin-bottom:14px; border:1.5px solid var(--border-color);">
+            <div class="section-label">% от числа</div>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <input type="number" id="p2" placeholder="%" style="flex:1; text-align:center; font-size:20px;">
+                <span style="font-size:16px; color:var(--text-muted); flex-shrink:0;">% от</span>
+                <input type="number" id="p1" placeholder="Числа" style="flex:2;">
+            </div>
+            <button class="btn" onclick="calcPercent()">Посчитать</button>
+            <div class="result-box" id="pr" onclick="copyResult(this)">...</div>
+        </div>
+        <div style="background:var(--surface2); border-radius:14px; padding:18px; border:1.5px solid var(--border-color);">
+            <div class="section-label">Изменение в %</div>
+            <div style="display:flex; gap:10px;">
+                <input type="number" id="pc_from" placeholder="Было" style="flex:1;">
+                <input type="number" id="pc_to" placeholder="Стало" style="flex:1;">
+            </div>
+            <button class="btn" onclick="calcPercentChange()">Посчитать изменение</button>
+            <div class="result-box" id="pc_res" onclick="copyResult(this)">...</div>
+        </div>
+        <div class="copy-hint">кликни чтобы скопировать</div>
+    </div>
+
+    <!-- ДЕНЬ РОЖДЕНИЯ -->
+    <div id="birthday" class="section card">
+        <h2 class="center-title">🎂 Анализ Жизни</h2>
+        <p class="center-sub">Введи свою дату рождения</p>
+        <input type="date" id="bd">
+        <button class="btn" onclick="calcLife()">Проанализировать</button>
+        <div id="lifeResult" style="display:none;">
+            <div class="life-grid" id="lifeGrid"></div>
+        </div>
+    </div>
+
+    <!-- КЛИКЕР -->
+    <div id="clicker" class="section card" style="text-align:center;">
+        <h2 class="center-title">⚡ Кликер Антистресс</h2>
+
+        <!-- Milestone fact popup -->
+        <div id="clickFactBox" style="display:none; background:linear-gradient(135deg,rgba(168,85,247,0.15),rgba(255,110,247,0.08)); border:1.5px solid var(--primary-color); border-radius:16px; padding:16px 20px; margin-bottom:16px; animation:slideUp 0.4s cubic-bezier(0.16,1,0.3,1);">
+            <div style="font-size:22px; margin-bottom:6px;" id="clickFactEmoji">🎉</div>
+            <div style="font-size:13px; font-weight:800; color:var(--primary-color); margin-bottom:6px; font-family:'Unbounded',sans-serif; letter-spacing:-0.3px;" id="clickFactMilestone"></div>
+            <div style="font-size:13px; color:var(--text-color); line-height:1.6; font-weight:500;" id="clickFactText"></div>
+        </div>
+
+        <div style="font-size:64px; margin:16px 0 4px; font-weight:900; color:var(--primary-color); line-height:1; font-family:'Unbounded',sans-serif; transition:transform 0.05s;" id="clickCount">0</div>
+        <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:700;" id="clickCps">— кликов/сек</div>
+        <div style="font-size:11px; color:var(--text-muted); margin-bottom:18px; font-weight:600;" id="clickNextMilestone"></div>
+
+        <button class="btn" id="clickBtn" onclick="clickMore()">ЖМИ! ⚡</button>
+        <button class="btn" onclick="resetClicker()" style="background:transparent; border:1.5px solid var(--border-color); color:var(--text-color); margin-top:10px; box-shadow:none;">↺ Сброс</button>
+
+        <!-- Mini achievements bar -->
+        <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:18px;" id="clickAchievements"></div>
+    </div>
+    <!-- СПИСОК ЗАДАЧ -->
+    <div id="todo" class="section card">
+        <h2 class="center-title">✅ Список Задач</h2>
+        <p class="center-sub">Сохраняется в браузере автоматически</p>
+        <div style="display:flex; gap:10px;">
+            <input type="text" id="todoInput" placeholder="Новая задача..." style="flex:1; margin:0;" onkeydown="if(event.key==='Enter')addTodo()">
+            <button onclick="addTodo()" style="background:var(--primary-color);color:white;border:none;padding:13px 18px;border-radius:12px;cursor:pointer;font-size:20px;font-weight:900;flex-shrink:0;transition:0.2s;box-shadow:0 4px 15px var(--primary-glow);">+</button>
+        </div>
+        <div style="display:flex; gap:8px; margin:12px 0 4px; flex-wrap:wrap;">
+            <button class="todo-filter-btn active" id="tf_all" onclick="setTodoFilter('all',this)">Все</button>
+            <button class="todo-filter-btn" id="tf_active" onclick="setTodoFilter('active',this)">Активные</button>
+            <button class="todo-filter-btn" id="tf_done" onclick="setTodoFilter('done',this)">Выполненные</button>
+        </div>
+        <div id="todoList" style="margin-top:8px; display:flex; flex-direction:column; gap:8px;"></div>
+        <div id="todoEmpty" style="text-align:center; color:var(--text-muted); padding:30px; font-size:14px; display:none;">Пока задач нет 🎉</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; padding-top:14px; border-top:1px solid var(--border-color);">
+            <span id="todoStats" style="font-size:12px; color:var(--text-muted); font-weight:700;"></span>
+            <button onclick="clearDoneTodos()" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;font-family:'Manrope',sans-serif;font-weight:700;padding:0;">🗑️ Удалить выполненные</button>
+        </div>
+    </div>
+
+    <!-- КАЛЬКУЛЯТОР ТЕЛА -->
+    <div id="bodyinfo" class="section card">
+        <h2 class="center-title">💪 Калькулятор тела</h2>
+        <p class="center-sub">ИМТ, норма калорий, вес воды и многое другое</p>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div>
+                <div class="frac-lbl" style="margin-bottom:4px;">Пол</div>
+                <select id="bodyGender">
+                    <option value="m">👨 Мужской</option>
+                    <option value="f">👩 Женский</option>
+                </select>
+            </div>
+            <div>
+                <div class="frac-lbl" style="margin-bottom:4px;">Возраст</div>
+                <input type="number" id="bodyAge" placeholder="25" min="10" max="100">
+            </div>
+            <div>
+                <div class="frac-lbl" style="margin-bottom:4px;">Рост (см)</div>
+                <input type="number" id="bodyHeight" placeholder="175" min="100" max="250">
+            </div>
+            <div>
+                <div class="frac-lbl" style="margin-bottom:4px;">Вес (кг)</div>
+                <input type="number" id="bodyWeight" placeholder="70" min="30" max="300">
+            </div>
+        </div>
+
+        <div class="frac-lbl" style="margin:12px 0 4px;">Активность</div>
+        <select id="bodyActivity">
+            <option value="1.2">🛋️ Минимальная (сидячая работа)</option>
+            <option value="1.375">🚶 Лёгкая (1–3 тренировки/нед)</option>
+            <option value="1.55" selected>🏃 Умеренная (3–5 тренировок/нед)</option>
+            <option value="1.725">🏋️ Высокая (6–7 тренировок/нед)</option>
+            <option value="1.9">🔥 Экстремальная (спортсмены)</option>
+        </select>
+
+        <button class="btn" onclick="calcBody()">Рассчитать</button>
+
+        <div id="bodyResults" style="display:none; margin-top:18px;">
+            <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px;" id="bodyGrid"></div>
+            <div id="bodyBmiBar" style="margin-top:16px; background:var(--surface2); border-radius:14px; padding:16px; border:1.5px solid var(--border-color);">
+                <div class="section-label" style="margin-bottom:10px;">Шкала ИМТ</div>
+                <div style="height:12px; border-radius:6px; background:linear-gradient(to right,#2ed573,#ffa502,#ff4757); position:relative; margin-bottom:8px;">
+                    <div id="bodyBmiMarker" style="position:absolute; top:-4px; width:20px; height:20px; background:white; border-radius:50%; border:2px solid #333; transform:translateX(-50%); box-shadow:0 2px 8px rgba(0,0,0,0.3); transition:left 0.5s;"></div>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-muted); font-weight:700;">
+                    <span>Дефицит<br>&lt;18.5</span><span style="text-align:center;">Норма<br>18.5–25</span><span style="text-align:center;">Избыток<br>25–30</span><span style="text-align:right;">Ожирение<br>&gt;30</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- КРЕДИТНЫЙ КАЛЬКУЛЯТОР -->
+    <div id="loan" class="section card">
+        <h2 class="center-title">🏦 Кредитный калькулятор</h2>
+        <p class="center-sub">Считай ежемесячный платёж и переплату</p>
+
+        <div class="frac-lbl" style="margin-bottom:4px;">Сумма кредита</div>
+        <input type="number" id="loanAmount" placeholder="500 000" oninput="calcLoan()">
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:4px;">
+            <div>
+                <div class="frac-lbl" style="margin-bottom:4px;">Срок (месяцев)</div>
+                <input type="number" id="loanMonths" placeholder="36" min="1" max="360" oninput="calcLoan()">
+            </div>
+            <div>
+                <div class="frac-lbl" style="margin-bottom:4px;">Ставка (% в год)</div>
+                <input type="number" id="loanRate" placeholder="15" step="0.1" oninput="calcLoan()">
+            </div>
+        </div>
+
+        <div id="loanResults" style="display:none; margin-top:18px;">
+            <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px;" id="loanGrid"></div>
+            <div style="margin-top:14px; background:var(--surface2); border-radius:14px; padding:16px; border:1.5px solid var(--border-color);">
+                <div class="section-label" style="margin-bottom:10px;">Состав выплат</div>
+                <div style="height:20px; border-radius:10px; overflow:hidden; display:flex;">
+                    <div id="loanBodyBar" style="background:var(--primary-color); transition:width 0.5s; display:flex; align-items:center; justify-content:center; font-size:10px; color:white; font-weight:800;"></div>
+                    <div id="loanInterestBar" style="background:#ff4757; transition:width 0.5s; display:flex; align-items:center; justify-content:center; font-size:10px; color:white; font-weight:800;"></div>
+                </div>
+                <div style="display:flex; gap:16px; margin-top:8px; font-size:11px; font-weight:700;">
+                    <span style="color:var(--primary-color);">■ Основной долг</span>
+                    <span style="color:#ff4757;">■ Переплата (проценты)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- КОНВЕРТЕР ЧИСЛОВЫХ СИСТЕМ -->
+    <div id="numconv" class="section card">
+        <h2 class="center-title">🔢 Числовые системы</h2>
+        <p class="center-sub">DEC ↔ BIN ↔ HEX ↔ OCT — конвертируй мгновенно</p>
+
+        <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:8px;">
+            <div style="background:rgba(168,85,247,0.06); border:2px solid var(--primary-color); border-radius:12px; padding:4px 12px 12px;">
+                <div class="frac-lbl" style="margin:10px 0 4px; color:var(--primary-color);">DEC — Десятичная</div>
+                <input type="text" id="nc_dec" placeholder="255" oninput="ncFromDec()" style="margin:0; font-size:20px; font-weight:800; font-family:'Courier New',monospace;">
+            </div>
+            <div style="background:var(--surface2); border:1.5px solid var(--border-color); border-radius:12px; padding:4px 12px 12px;">
+                <div class="frac-lbl" style="margin:10px 0 4px;">BIN — Двоичная</div>
+                <input type="text" id="nc_bin" placeholder="11111111" oninput="ncFromBin()" style="margin:0; font-size:15px; font-weight:700; font-family:'Courier New',monospace; color:var(--primary-color);">
+            </div>
+            <div style="background:var(--surface2); border:1.5px solid var(--border-color); border-radius:12px; padding:4px 12px 12px;">
+                <div class="frac-lbl" style="margin:10px 0 4px;">HEX — Шестнадцатеричная</div>
+                <input type="text" id="nc_hex" placeholder="FF" oninput="ncFromHex()" style="margin:0; font-size:20px; font-weight:800; font-family:'Courier New',monospace; text-transform:uppercase; color:#ff6ef7;">
+            </div>
+            <div style="background:var(--surface2); border:1.5px solid var(--border-color); border-radius:12px; padding:4px 12px 12px;">
+                <div class="frac-lbl" style="margin:10px 0 4px;">OCT — Восьмеричная</div>
+                <input type="text" id="nc_oct" placeholder="377" oninput="ncFromOct()" style="margin:0; font-size:20px; font-weight:800; font-family:'Courier New',monospace; color:#2ed573;">
+            </div>
+        </div>
+
+        <button class="btn" onclick="ncClear()" style="background:transparent; border:1.5px solid var(--border-color); color:var(--text-color); box-shadow:none; margin-top:4px;">✕ Очистить</button>
+
+        <div class="sec-divider"></div>
+        <div class="section-label">Таблица ASCII (кликни на символ)</div>
+        <div id="asciiTable" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:10px; max-height:200px; overflow-y:auto;"></div>
+
+        <div class="sec-divider"></div>
+        <div class="section-label">Битовый визуализатор</div>
+        <div id="bitVisual" style="display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; justify-content:center;"></div>
+    </div>
+
+</main>
+
+<script>
+/* ======== НАВИГАЦИЯ ======== */
+const pageTitles = {
+    home:'Главная', notes:'Заметки', calculator:'Калькулятор', fractions:'Дроби',
+    currency:'Конвертер Валют', percent:'Проценты', birthday:'Анализ Жизни',
+    password:'Пароли', nickname:'Никнеймы', randomizer:'Рандомайзер',
+    qrcode:'QR-Генератор', cipher:'Шифратор', clicker:'Кликер',
+    texttools:'Текст-Инструменты', timer:'Таймер', units:'Конвертер Единиц',
+    colorconv:'Конвертер Цветов', todo:'Список Задач', gradient:'Генератор Градиентов',
+    bodyinfo:'Калькулятор тела', loan:'Кредитный калькулятор', numconv:'Числовые системы'
+};
+
+function openTab(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    const btn = [...document.querySelectorAll('.tab-btn')].find(b => b.getAttribute('onclick') === `openTab('${id}')`);
+    if (btn) btn.classList.add('active');
+    document.getElementById('pageTitle').innerText = pageTitles[id] || 'MiniTools';
+    if (document.getElementById('sidebar').classList.contains('open')) toggleMenu();
+    document.querySelector('main').scrollTo(0, 0);
+}
+
+function toggleMenu() {
+    const sb = document.getElementById('sidebar');
+    const ov = document.getElementById('overlay');
+    const open = sb.classList.toggle('open');
+    ov.style.display = open ? 'block' : 'none';
+}
+
+function toggleTheme() {
+    const root = document.documentElement;
+    const isDark = root.getAttribute('data-theme') === 'dark';
+    root.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('themeToggle').innerText = isDark ? '🌙' : '☀️';
+    localStorage.setItem('theme', isDark ? 'light' : 'dark');
+}
+if (localStorage.getItem('theme') === 'light') toggleTheme();
+
+function copyResult(el) {
+    const text = el.innerText.trim();
+    if (!text || ['...', '****', '🎲', '✅ Скопировано!'].some(b => text.includes(b))) return;
+    navigator.clipboard.writeText(text).catch(() => {});
+    const orig = el.innerText;
+    el.innerText = '✅ Скопировано!';
+    setTimeout(() => el.innerText = orig, 1400);
+}
+
+function copyText(t, el) {
+    navigator.clipboard.writeText(t).catch(() => {});
+    const textEl = el.querySelector('.color-val-text');
+    if (!textEl) return;
+    const orig = textEl.innerText;
+    textEl.innerText = '✅';
+    setTimeout(() => textEl.innerText = orig, 1200);
+}
+
+/* ======== ЗАМЕТКИ ======== */
+const notesArea = document.getElementById('quickNotesArea');
+notesArea.value = localStorage.getItem('miniNotes') || '';
+updateNoteStats();
+function saveNotes() { localStorage.setItem('miniNotes', notesArea.value); updateNoteStats(); }
+function clearNotes() { if (confirm('Точно очистить?')) { notesArea.value = ''; saveNotes(); } }
+function updateNoteStats() {
+    const t = notesArea.value;
+    const w = t.trim() === '' ? 0 : t.trim().split(/\s+/).length;
+    document.getElementById('noteStats').innerText = `${t.length} символов · ${w} слов`;
+}
+function insertNote(prefix) {
+    const ta = notesArea;
+    const pos = ta.selectionStart;
+    const before = ta.value.substring(0, pos);
+    const after = ta.value.substring(pos);
+    const needsNewline = before.length > 0 && !before.endsWith('\n');
+    const insert = (needsNewline ? '\n' : '') + prefix;
+    ta.value = before + insert + after;
+    ta.selectionStart = ta.selectionEnd = pos + insert.length;
+    ta.focus();
+    saveNotes();
+}
+
+/* ======== QR КОД (qrcode.js - работает офлайн, сканируется!) ======== */
+let qrInstance = null;
+function generateQR() {
+    const text = document.getElementById('qrInput').value.trim();
+    if (!text) { alert('Введи текст или ссылку!'); return; }
+    const size = parseInt(document.getElementById('qrSize').value) || 256;
+    const colorLight = document.getElementById('qrColorLight').value;
+    const colorDark = document.getElementById('qrColorDark').value;
+
+    const container = document.getElementById('qrCanvas');
+    container.innerHTML = '';
+
+    try {
+        qrInstance = new QRCode(container, {
+            text: text,
+            width: size,
+            height: size,
+            colorDark: colorDark,
+            colorLight: colorLight,
+            correctLevel: QRCode.CorrectLevel.H
+        });
+        document.getElementById('qrDisplay').style.display = 'flex';
+        document.getElementById('qrTextPreview').innerText = text.length > 60 ? text.slice(0, 60) + '…' : text;
+    } catch(e) {
+        alert('Ошибка генерации QR: ' + e.message);
+    }
+}
+function downloadQR() {
+    const canvas = document.querySelector('#qrCanvas canvas');
+    const img = document.querySelector('#qrCanvas img');
+    if (canvas) {
+        const a = document.createElement('a'); a.href = canvas.toDataURL('image/png'); a.download = 'QR_MiniTools.png'; a.click();
+    } else if (img) {
+        const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+        c.getContext('2d').drawImage(img, 0, 0);
+        const a = document.createElement('a'); a.href = c.toDataURL('image/png'); a.download = 'QR_MiniTools.png'; a.click();
+    }
+}
+
+/* ======== РАНДОМАЙЗЕР ======== */
+let _ri;
+function genRandom() {
+    let mn = parseInt(document.getElementById('randMin').value), mx = parseInt(document.getElementById('randMax').value);
+    if (isNaN(mn) || isNaN(mx)) return;
+    if (mn > mx) [mn, mx] = [mx, mn];
+    const final = Math.floor(Math.random() * (mx - mn + 1)) + mn;
+    const box = document.getElementById('randRes');
+    let t = 0; clearInterval(_ri);
+    _ri = setInterval(() => {
+        box.innerText = Math.floor(Math.random()*(mx-mn+1))+mn;
+        if(++t > 16) { clearInterval(_ri); box.innerText = final; }
+    }, 35);
+}
+function genFromList() {
+    const raw = document.getElementById('randList').value;
+    const items = raw.split(',').map(x => x.trim()).filter(Boolean);
+    const box = document.getElementById('randListRes');
+    if (items.length === 0) return;
+    box.style.display = 'flex';
+    let t = 0;
+    clearInterval(_ri);
+    const final = items[Math.floor(Math.random() * items.length)];
+    _ri = setInterval(() => {
+        box.innerText = items[Math.floor(Math.random()*items.length)];
+        if(++t > 16) { clearInterval(_ri); box.innerText = final; }
+    }, 60);
+}
+
+/* ======== ШИФРАТОР ======== */
+let cipherMode = 'b64';
+function setCipherMode(m) {
+    cipherMode = m;
+    document.querySelectorAll('.cipher-mode-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('cmode_'+m).classList.add('active');
+    document.getElementById('caesarShift').style.display = m === 'caesar' ? 'block' : 'none';
+}
+function encodeCipher() {
+    const t = document.getElementById('cipherText').value;
+    if (!t) return;
+    let res = '';
+    if (cipherMode === 'b64') {
+        try { res = btoa(unescape(encodeURIComponent(t))); } catch(e) { res = 'Ошибка кодирования'; }
+    } else if (cipherMode === 'caesar') {
+        const shift = parseInt(document.getElementById('caesarShiftRange').value);
+        res = caesarCipher(t, shift);
+    } else if (cipherMode === 'rev') {
+        res = t.split('').reverse().join('');
+    }
+    document.getElementById('cipherRes').innerText = res;
+}
+function decodeCipher() {
+    const t = document.getElementById('cipherText').value;
+    if (!t) return;
+    let res = '';
+    if (cipherMode === 'b64') {
+        try { res = decodeURIComponent(escape(atob(t))); } catch(e) { res = '❌ Неверный код'; }
+    } else if (cipherMode === 'caesar') {
+        const shift = parseInt(document.getElementById('caesarShiftRange').value);
+        res = caesarCipher(t, 26 - shift);
+    } else if (cipherMode === 'rev') {
+        res = t.split('').reverse().join('');
+    }
+    document.getElementById('cipherRes').innerText = res;
+}
+function caesarCipher(text, shift) {
+    return text.split('').map(c => {
+        if (/[a-zA-Z]/.test(c)) {
+            const base = c >= 'a' ? 97 : 65;
+            return String.fromCharCode(((c.charCodeAt(0) - base + shift) % 26) + base);
+        }
+        if (/[а-яёА-ЯЁ]/.test(c)) {
+            const ru = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ';
+            const isUp = c === c.toUpperCase();
+            const lower = c.toLowerCase();
+            const idx = ru.indexOf(lower);
+            if (idx === -1) return c;
+            const alphabet = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя';
+            const newChar = alphabet[(idx % 33 + shift) % 33];
+            return isUp ? newChar.toUpperCase() : newChar;
+        }
+        return c;
+    }).join('');
+}
+
+/* ======== ВАЛЮТЫ ======== */
+const exR = { USD:1, EUR:0.92, RUB:92.5, UAH:38.8, KZT:450, BYN:3.25, GBP:0.79, CNY:7.24, TRY:32.0 };
+const flagMap = { USD:'🇺🇸', EUR:'🇪🇺', RUB:'🇷🇺', UAH:'🇺🇦', KZT:'🇰🇿', BYN:'🇧🇾', GBP:'🇬🇧', CNY:'🇨🇳', TRY:'🇹🇷' };
+const nameMap = { USD:'Доллар', EUR:'Евро', RUB:'Рубль', UAH:'Гривна', KZT:'Тенге', BYN:'Бел. рубль', GBP:'Фунт', CNY:'Юань', TRY:'Лира' };
+document.getElementById('ratesDisplay').innerHTML = `
+    <div class="rates-title">Курс к USD (примерный)</div>
+    <table class="rates-table">
+        ${Object.entries(exR).map(([k,v]) => `<tr><td><span class="flag-icon">${flagMap[k]}</span>${k} <span class="rate-name">${nameMap[k]}</span></td><td class="rate-val">${(v).toFixed(2)}</td></tr>`).join('')}
+    </table>
+    <div class="rates-note">⚠️ Курсы приблизительные — для точных данных используйте официальные источники</div>
+`;
+function convert() {
+    const val = parseFloat(document.getElementById('curVal').value);
+    if (isNaN(val)) return (document.getElementById('curRes').innerText = 'Введи число!');
+    const f = document.getElementById('curFrom').value, t = document.getElementById('curTo').value;
+    const res = (val / exR[f]) * exR[t];
+    document.getElementById('curRes').innerText = res.toLocaleString('ru-RU',{maximumFractionDigits:2}) + ' ' + t;
+}
+
+/* ======== КАЛЬКУЛЯТОР ======== */
+let cV = '', cExpr = '';
+const cMain = document.getElementById('calcMain');
+const cExprEl = document.getElementById('calcExpression');
+
+function appendCalc(v) {
+    if (cV === 'Ошибка') cV = '';
+    cV += v;
+    updateCalcDisplay();
+}
+function updateCalcDisplay() {
+    cExprEl.innerText = cExpr;
+    let display = cV.replace(/Math\.sqrt\(/g,'√(').replace(/\*\*/g,'^');
+    cMain.innerText = display || '0';
+}
+function clearCalc() { cV = ''; cExpr = ''; cMain.innerText = '0'; cExprEl.innerText = ''; }
+function backspaceCalc() {
+    if (cV === 'Ошибка') { clearCalc(); return; }
+    // Remove last multi-char tokens
+    if (cV.endsWith('Math.sqrt(')) cV = cV.slice(0, -10);
+    else if (cV.endsWith('**2')) cV = cV.slice(0, -3);
+    else cV = cV.slice(0, -1);
+    updateCalcDisplay();
+}
+function calcSign() {
+    if (!cV || cV === 'Ошибка') return;
+    if (cV.startsWith('-')) cV = cV.slice(1);
+    else cV = '-' + cV;
+    updateCalcDisplay();
+}
+function calculate() {
+    try {
+        if (!cV) return;
+        const expr = cV.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-').replace(/%/g,'/100');
+        const r = eval(expr);
+        cExpr = cV + ' =';
+        cV = (Math.round(r * 1e10) / 1e10).toString();
+        updateCalcDisplay();
+    } catch(e) {
+        cMain.innerText = 'Ошибка'; cV = '';
+    }
+}
+// Keyboard support
+document.addEventListener('keydown', e => {
+    if (!document.getElementById('calculator').classList.contains('active')) return;
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if ('0123456789'.includes(e.key)) appendCalc(e.key);
+    else if ('+-*/'.includes(e.key)) appendCalc(e.key);
+    else if (e.key === '.') appendCalc('.');
+    else if (e.key === 'Enter' || e.key === '=') calculate();
+    else if (e.key === 'Backspace') backspaceCalc();
+    else if (e.key === 'Escape') clearCalc();
+    else if (e.key === '(') appendCalc('(');
+    else if (e.key === ')') appendCalc(')');
+});
+
+/* ======== ДРОБИ ======== */
+let fracOp = 'add';
+const fracSyms = {add:'+', sub:'−', mul:'×', div:'÷'};
+function selectFracOp(op) {
+    fracOp = op;
+    document.querySelectorAll('.frac-op-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('fop_'+op).classList.add('selected');
+    document.getElementById('fracOpDisplay').innerText = fracSyms[op];
+}
+function gcd(a,b) { return b === 0 ? a : gcd(b, a % b); }
+function simplify(n,d) {
+    if (d === 0) return null;
+    const s = ((n<0) !== (d<0)) ? -1 : 1;
+    n = Math.abs(n); d = Math.abs(d);
+    const g = gcd(n, d);
+    return { n: s*(n/g), d: d/g };
+}
+function calcFraction() {
+    const n1 = parseInt(document.getElementById('fn1').value), d1 = parseInt(document.getElementById('fd1').value);
+    const n2 = parseInt(document.getElementById('fn2').value), d2 = parseInt(document.getElementById('fd2').value);
+    const res = document.getElementById('fracResult'), main = document.getElementById('fracMain'), dec = document.getElementById('fracDecimal');
+    res.style.display = 'block';
+    if ([n1,d1,n2,d2].some(isNaN)) { main.innerHTML = '<span style="color:var(--danger)">Заполни все поля!</span>'; dec.innerText = ''; return; }
+    if (d1 === 0 || d2 === 0) { main.innerHTML = '<span style="color:var(--danger)">Знаменатель ≠ 0</span>'; dec.innerText = ''; return; }
+    let rn, rd;
+    switch(fracOp) {
+        case 'add': rn = n1*d2+n2*d1; rd = d1*d2; break;
+        case 'sub': rn = n1*d2-n2*d1; rd = d1*d2; break;
+        case 'mul': rn = n1*n2; rd = d1*d2; break;
+        case 'div':
+            if (n2 === 0) { main.innerHTML = '<span style="color:var(--danger)">Деление на 0!</span>'; dec.innerText = ''; return; }
+            rn = n1*d2; rd = d1*n2; break;
+    }
+    const s = simplify(rn, rd);
+    if (!s) return;
+    const decimal = s.n / s.d;
+    if (s.d === 1) {
+        main.innerHTML = `<span>${s.n}</span>`;
+    } else {
+        const whole = Math.trunc(s.n/s.d), rem = Math.abs(s.n % s.d);
+        const fHTML = `<div class="frac-f"><span>${rem}</span><div class="frac-f-line"></div><span>${s.d}</span></div>`;
+        main.innerHTML = whole !== 0 ? `<span>${whole}</span>${fHTML}` : fHTML;
+    }
+    dec.innerText = `≈ ${parseFloat(decimal.toFixed(8))}`;
+}
+
+/* ======== ПАРОЛИ ======== */
+function genPass() {
+    let ch = 'abcdefghijklmnopqrstuvwxyz';
+    if (document.getElementById('p_up').checked) ch += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    if (document.getElementById('p_num').checked) ch += '0123456789';
+    if (document.getElementById('p_sym').checked) ch += '!@#$%^&*()_+~|}{[]:;?><,./-=';
+    if (!document.getElementById('p_ambig').checked) {
+        ch = ch.replace(/[0O1lI]/g, '');
+    }
+    if (!ch) { document.getElementById('passRes').innerText = 'Выбери настройки!'; return; }
+    const l = parseInt(document.getElementById('passLength').value);
+    let r = '';
+    for (let i = 0; i < l; i++) r += ch[Math.floor(Math.random() * ch.length)];
+    document.getElementById('passRes').innerText = r;
+    // Strength indicator
+    let score = 0;
+    if (l >= 12) score++; if (l >= 16) score++; if (l >= 20) score++;
+    if (/[A-Z]/.test(r)) score++; if (/[0-9]/.test(r)) score++; if (/[^a-zA-Z0-9]/.test(r)) score++;
+    const sb = document.getElementById('passStrength');
+    sb.style.display = 'block';
+    const levels = ['Очень слабый','Слабый','Средний','Хороший','Сильный','Очень сильный'];
+    const colors = ['#ff4757','#ff6348','#ffa502','#2ed573','#1e90ff','#a855f7'];
+    const idx = Math.min(score, 5);
+    sb.innerText = '🔐 Надёжность: ' + levels[idx];
+    sb.style.background = colors[idx] + '22';
+    sb.style.color = colors[idx];
+    sb.style.border = '1.5px solid ' + colors[idx] + '66';
+}
+
+/* ======== НИКНЕЙМЫ ======== */
+function genNick() {
+    const words = ['Wolf','Storm','Killa','Shadow','Savage','Ghost','Samurai','Cyber','Dark','Neon','Blade','Viper','Specter','Raven','Phoenix','Cobra','Nova','Frost','Pixel','Glitch','Void','Titan','Reaper','Nexus','Ember','Crimson','Zero','Omega'];
+    const prefixes = ['xX_','_','__','II','x','The','iM_','oG_'];
+    let n = words[Math.floor(Math.random()*words.length)];
+    if (document.getElementById('n_up').checked) n = n.toUpperCase();
+    if (document.getElementById('n_num').checked) n += Math.floor(Math.random()*9999);
+    if (document.getElementById('n_pre').checked) {
+        const p = prefixes[Math.floor(Math.random()*prefixes.length)];
+        n = p + n + p.split('').reverse().join('');
+    }
+    document.getElementById('nickRes').innerText = n;
+}
+
+/* ======== ПРОЦЕНТЫ ======== */
+function calcPercent() {
+    const num = parseFloat(document.getElementById('p1').value), pct = parseFloat(document.getElementById('p2').value);
+    if (isNaN(num)||isNaN(pct)) { document.getElementById('pr').innerText = 'Заполни оба поля!'; return; }
+    document.getElementById('pr').innerText = `${pct}% от ${num} = ${(num*pct)/100}`;
+}
+function calcPercentChange() {
+    const from = parseFloat(document.getElementById('pc_from').value), to = parseFloat(document.getElementById('pc_to').value);
+    if (isNaN(from)||isNaN(to)) { document.getElementById('pc_res').innerText = 'Заполни оба поля!'; return; }
+    if (from === 0) { document.getElementById('pc_res').innerText = 'Начало не может быть 0'; return; }
+    const change = ((to - from) / Math.abs(from)) * 100;
+    const sign = change >= 0 ? '▲ +' : '▼ ';
+    document.getElementById('pc_res').innerText = `${sign}${change.toFixed(2)}%`;
+    document.getElementById('pc_res').style.color = change >= 0 ? 'var(--success)' : 'var(--danger)';
+}
+
+/* ======== ДЕНЬ РОЖДЕНИЯ ======== */
+function calcLife() {
+    const val = document.getElementById('bd').value;
+    const lifeRes = document.getElementById('lifeResult');
+    if (!val) { lifeRes.style.display='none'; return; }
+    const birth = new Date(val), now = new Date();
+    if (birth > now) {
+        document.getElementById('lifeGrid').innerHTML='<div class="life-stat" style="grid-column:span 2"><div class="life-val">🚀</div><div class="life-lbl">Ты ещё не родился!</div></div>';
+        lifeRes.style.display='block'; return;
+    }
+    const diffMs = now - birth;
+    const totalDays = Math.floor(diffMs / 86400000);
+    const years = Math.floor(totalDays / 365.25);
+    const months = Math.floor(totalDays / 30.44);
+    const weeks = Math.floor(totalDays / 7);
+    const hours = Math.floor(diffMs / 3600000);
+    const nextBD = new Date(now.getFullYear(), birth.getMonth(), birth.getDate());
+    if (nextBD <= now) nextBD.setFullYear(now.getFullYear() + 1);
+    const daysToNext = Math.ceil((nextBD - now) / 86400000);
+    const isToday = birth.getDate() === now.getDate() && birth.getMonth() === now.getMonth();
+    // Zodiac
+    const zodiac = getZodiac(birth.getMonth()+1, birth.getDate());
+    document.getElementById('lifeGrid').innerHTML = `
+        <div class="life-stat"><div class="life-val">${years}</div><div class="life-lbl">Лет</div></div>
+        <div class="life-stat"><div class="life-val">${totalDays.toLocaleString('ru-RU')}</div><div class="life-lbl">Дней прожито</div></div>
+        <div class="life-stat"><div class="life-val">${weeks.toLocaleString('ru-RU')}</div><div class="life-lbl">Недель</div></div>
+        <div class="life-stat"><div class="life-val">${months.toLocaleString('ru-RU')}</div><div class="life-lbl">Месяцев</div></div>
+        <div class="life-stat"><div class="life-val">${hours.toLocaleString('ru-RU')}</div><div class="life-lbl">Часов прожито</div></div>
+        <div class="life-stat"><div class="life-val">${zodiac}</div><div class="life-lbl">Знак зодиака</div></div>
+        <div class="life-stat life-bday"><div class="life-val">${isToday ? '🎉 Сегодня!' : daysToNext + ' дн.'}</div><div class="life-lbl">${isToday ? '🎊 С Днём Рождения! 🎊' : 'До следующего Дня Рождения'}</div></div>
+    `;
+    lifeRes.style.display = 'block';
+}
+function getZodiac(m, d) {
+    const signs = [
+        [1,20,'♑ Козерог'],[2,19,'♒ Водолей'],[3,20,'♓ Рыбы'],[4,20,'♈ Овен'],
+        [5,21,'♉ Телец'],[6,21,'♊ Близнецы'],[7,23,'♋ Рак'],[8,23,'♌ Лев'],
+        [9,23,'♍ Дева'],[10,23,'♎ Весы'],[11,22,'♏ Скорпион'],[12,22,'♐ Стрелец'],[1,19,'♑ Козерог']
+    ];
+    for (let i = 0; i < signs.length - 1; i++) {
+        if (m === signs[i][0] && d >= signs[i][1]) return signs[i+1][2];
+        if (m === signs[i+1][0] && d < signs[i+1][1]) return signs[i+1][2];
+    }
+    return '♑ Козерог';
+}
+
+/* ======== КЛИКЕР ======== */
+const CLICK_FACTS = [
+    { n:10,   emoji:'⚡', title:'10 кликов!',     text:'Средний человек моргает около 15–20 раз в минуту. Ты уже кликнул быстрее!' },
+    { n:25,   emoji:'🔥', title:'25 кликов!',     text:'Муравей может поднять груз в 50 раз тяжелее себя. Ты тоже молодец!' },
+    { n:50,   emoji:'🌍', title:'50 кликов!',     text:'На Земле больше деревьев, чем звёзд в Млечном Пути — около 3 триллионов!' },
+    { n:100,  emoji:'💯', title:'100 кликов!',    text:'Мёд не портится. Archaeологи находили мёду 3000 лет — и он всё ещё съедобен.' },
+    { n:200,  emoji:'🧠', title:'200 кликов!',    text:'Мозг потребляет около 20% всей энергии тела, хотя весит только ~1.5 кг.' },
+    { n:300,  emoji:'🌊', title:'300 кликов!',    text:'Осьминоги имеют три сердца и голубую кровь. Вот это по-настоящему крово!' },
+    { n:500,  emoji:'🚀', title:'500 кликов! 🔥',  text:'Свет от Солнца до Земли летит ~8 минут. Твои клики распространяются быстрее!' },
+    { n:750,  emoji:'🌌', title:'750 кликов!',    text:'В наблюдаемой Вселенной больше галактик, чем песчинок на всех пляжах Земли.' },
+    { n:1000, emoji:'💎', title:'1000 кликов! ЛЕГЕНДА!', text:'Если сложить все ДНК из клеток твоего тела — получится нить длиной ~68 млрд км. Это 450 раз до Плутона!' },
+    { n:1500, emoji:'🏆', title:'1500 кликов!',   text:'Акулы существуют дольше, чем деревья. Акулам ~450 млн лет, деревьям ~350 млн.' },
+    { n:2000, emoji:'👑', title:'2000 кликов! БОГ КЛИКОВ!', text:'Человеческое тело производит 25 миллионов новых клеток каждую секунду. Ты нажимал на кнопку всё это время.' },
+    { n:3000, emoji:'🌠', title:'3000 кликов!',   text:'Клеопатра жила ближе к запуску iPhone, чем к строительству пирамид. История — это странно.' },
+    { n:5000, emoji:'🎆', title:'5000 кликов! КОСМОС!', text:'Если бы ты кликал со скоростью света — ты мог бы обогнуть Землю 7.5 раз за 1 секунду. Почти там!' },
+    { n:10000,emoji:'🌋', title:'10 000 кликов!!! АБСОЛЮТ!', text:'Ты потратил немало времени на это. Знай: даже осьминоги играют. Исследователи наблюдали, как они катали таблетки туда-обратно просто ради удовольствия. Ты такой же 🐙' },
+];
+
+const CLICK_ACHIEVEMENTS = [
+    { n:10,   emoji:'⚡', label:'Новичок' },
+    { n:50,   emoji:'🔥', label:'Горячий' },
+    { n:100,  emoji:'💯', label:'Сотня' },
+    { n:500,  emoji:'🚀', label:'Ракета' },
+    { n:1000, emoji:'💎', label:'Алмаз' },
+    { n:5000, emoji:'👑', label:'Король' },
+    { n:10000,emoji:'🌋', label:'Абсолют' },
+];
+
+let clickVal = parseInt(localStorage.getItem('miniClick')||'0');
+let clickTimes = [];
+let lastShownFact = -1;
+
+function updateClickUI() {
+    document.getElementById('clickCount').innerText = clickVal.toLocaleString('ru-RU');
+    // Next milestone
+    const next = CLICK_FACTS.find(f => f.n > clickVal);
+    const nm = document.getElementById('clickNextMilestone');
+    if (nm) nm.innerText = next ? `До следующего факта: ${next.n - clickVal} кликов` : '🎆 Ты достиг всех вех!';
+    // Achievements
+    renderClickAchievements();
+}
+
+function renderClickAchievements() {
+    const el = document.getElementById('clickAchievements');
+    if (!el) return;
+    el.innerHTML = '';
+    CLICK_ACHIEVEMENTS.forEach(a => {
+        const unlocked = clickVal >= a.n;
+        const div = document.createElement('div');
+        div.style.cssText = `display:flex;flex-direction:column;align-items:center;gap:4px;opacity:${unlocked?1:0.25};transition:0.3s;`;
+        div.innerHTML = `<div style="font-size:22px;background:${unlocked?'rgba(168,85,247,0.15)':'var(--surface2)'};border:1.5px solid ${unlocked?'var(--primary-color)':'var(--border-color)'};width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;">${a.emoji}</div><span style="font-size:9px;font-weight:800;color:${unlocked?'var(--primary-color)':'var(--text-muted)'};font-family:'Unbounded',sans-serif;">${a.label}</span>`;
+        el.appendChild(div);
+    });
+}
+
+function showClickFact(fact) {
+    const box = document.getElementById('clickFactBox');
+    document.getElementById('clickFactEmoji').innerText = fact.emoji;
+    document.getElementById('clickFactMilestone').innerText = fact.title;
+    document.getElementById('clickFactText').innerText = fact.text;
+    box.style.display = 'block';
+    box.style.animation = 'none';
+    box.offsetHeight; // reflow
+    box.style.animation = 'slideUp 0.4s cubic-bezier(0.16,1,0.3,1)';
+    if (navigator.vibrate) navigator.vibrate([80, 40, 120]);
+}
+
+function clickMore() {
+    clickVal++;
+    localStorage.setItem('miniClick', clickVal);
+
+    // Bounce animation on count
+    const cnt = document.getElementById('clickCount');
+    cnt.style.transform = 'scale(1.18)';
+    setTimeout(() => cnt.style.transform = 'scale(1)', 80);
+
+    // CPS
+    const now = Date.now();
+    clickTimes.push(now);
+    clickTimes = clickTimes.filter(t => now - t < 1000);
+    document.getElementById('clickCps').innerText = clickTimes.length + ' кликов/сек';
+
+    // Check milestones
+    const fact = CLICK_FACTS.find(f => f.n === clickVal);
+    if (fact) showClickFact(fact);
+
+    updateClickUI();
+}
+
+function resetClicker() {
+    clickVal = 0; clickTimes = [];
+    document.getElementById('clickFactBox').style.display = 'none';
+    localStorage.setItem('miniClick', 0);
+    updateClickUI();
+    document.getElementById('clickCps').innerText = '— кликов/сек';
+}
+
+updateClickUI();
+
+/* ======== ТЕКСТ-ИНСТРУМЕНТЫ ======== */
+function ttAutoStats() {
+    const t = document.getElementById('ttInput').value;
+    const w = t.trim() === '' ? 0 : t.trim().split(/\s+/).length;
+    document.getElementById('ttStats').innerText = `${t.length} символов · ${w} слов`;
+}
+function ttOp(op) {
+    const text = document.getElementById('ttInput').value, box = document.getElementById('ttResult');
+    if (!text) { box.innerText = 'Введи текст выше!'; return; }
+    if (op === 'upper') box.innerText = text.toUpperCase();
+    else if (op === 'lower') box.innerText = text.toLowerCase();
+    else if (op === 'title') box.innerText = text.split(' ').map(w => w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' ');
+    else if (op === 'reverse') box.innerText = text.split('').reverse().join('');
+    else if (op === 'trim') box.innerText = text.replace(/\s+/g,' ').trim();
+    else if (op === 'removeDups') {
+        const lines = text.split('\n');
+        box.innerText = [...new Set(lines)].join('\n');
+    }
+    else if (op === 'sort') {
+        const lines = text.split('\n');
+        box.innerText = lines.sort((a,b) => a.localeCompare(b, 'ru')).join('\n');
+    }
+    else if (op === 'count') {
+        const c = text.length, w = text.trim()===''?0:text.trim().split(/\s+/).length, ln = text.split('\n').length;
+        const sentences = text.split(/[.!?]+/).filter(Boolean).length;
+        box.innerText = `Символов: ${c} | Слов: ${w} | Строк: ${ln} | Предложений: ~${sentences}`;
+    }
+}
+
+/* ======== СЕКУНДОМЕР ======== */
+let swElapsed=0, swRunning=false, swInterval, swStartTimestamp=0;
+function swUpdateBtns() {
+    const start = document.getElementById('swStartBtn');
+    const pause = document.getElementById('swPauseBtn');
+    if (swRunning) {
+        start.className = 'btn timer-btn-stop'; start.innerText = '⏸ Пауза'; start.onclick = swPauseFn;
+        pause.style.display = 'none';
+    } else {
+        start.className = 'btn timer-btn-run'; start.innerText = '▶ Старт'; start.onclick = swStartFn;
+        pause.style.display = '';
+    }
+}
+function swStartFn() {
+    if (swRunning) return;
+    swRunning = true;
+    swStartTimestamp = Date.now() - swElapsed;
+    swInterval = setInterval(() => {
+        swElapsed = Date.now() - swStartTimestamp;
+        const ms = swElapsed % 1000, s = Math.floor(swElapsed/1000)%60, m = Math.floor(swElapsed/60000);
+        document.getElementById('swDisplay').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${Math.floor(ms/100)}`;
+    }, 80);
+    swUpdateBtns();
+}
+function swPauseFn() {
+    swRunning = false; clearInterval(swInterval); swUpdateBtns();
+}
+function swResetFn() {
+    swRunning = false; swElapsed = 0; clearInterval(swInterval);
+    document.getElementById('swDisplay').innerText = '00:00.0';
+    swUpdateBtns();
+}
+
+/* ======== ТАЙМЕР (с часами!) ======== */
+let timerLeft=0, timerRunning=false, timerInt;
+function timerUpdateBtns() {
+    const start = document.getElementById('timerStartBtn');
+    const pause = document.getElementById('timerPauseBtn');
+    if (timerRunning) {
+        start.className = 'btn timer-btn-stop'; start.innerText = '⏸ Пауза'; start.onclick = timerPauseFn;
+        pause.style.display = 'none';
+    } else {
+        start.className = 'btn timer-btn-run'; start.innerText = '▶ Старт'; start.onclick = timerStartFn;
+        pause.style.display = '';
+    }
+}
+function setTimer(h,m,s) {
+    timerResetFn();
+    document.getElementById('timerHour').value = h;
+    document.getElementById('timerMin').value = m;
+    document.getElementById('timerSec').value = s;
+    timerLeft = h*3600 + m*60 + s;
+    updateTimerDisp(timerLeft);
+}
+function updateTimerDisp(secs) {
+    const h = Math.floor(secs/3600), m = Math.floor((secs%3600)/60), s = secs%60;
+    const d = document.getElementById('timerDisplay');
+    d.innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    d.style.color = secs<=10&&secs>0 ? 'var(--danger)' : 'var(--primary-color)';
+}
+function timerStartFn() {
+    if (timerRunning) return;
+    if (timerLeft === 0) {
+        const h = parseInt(document.getElementById('timerHour').value)||0;
+        const m = parseInt(document.getElementById('timerMin').value)||0;
+        const s = parseInt(document.getElementById('timerSec').value)||0;
+        timerLeft = h*3600 + m*60 + s;
+    }
+    if (timerLeft <= 0) return;
+    timerRunning = true;
+    timerUpdateBtns();
+    timerInt = setInterval(() => {
+        timerLeft--;
+        updateTimerDisp(timerLeft);
+        if (timerLeft <= 0) {
+            timerRunning = false; clearInterval(timerInt);
+            const d = document.getElementById('timerDisplay');
+            d.innerText = '⏰ ВРЕМЯ!';
+            d.style.color = 'var(--danger)';
+            timerUpdateBtns();
+            if (navigator.vibrate) navigator.vibrate([300,100,300,100,500]);
+        }
+    }, 1000);
+}
+function timerPauseFn() {
+    timerRunning = false; clearInterval(timerInt); timerUpdateBtns();
+}
+function timerResetFn() {
+    timerRunning = false; timerLeft = 0; clearInterval(timerInt);
+    document.getElementById('timerDisplay').innerText = '00:00:00';
+    document.getElementById('timerDisplay').style.color = 'var(--primary-color)';
+    timerUpdateBtns();
+}
+
+/* ======== КОНВЕРТЕР ЕДИНИЦ ======== */
+const unitData = {
+    length: {
+        label: 'Длина',
+        units: {
+            'мм': 0.001, 'см': 0.01, 'дм': 0.1, 'м': 1, 'км': 1000,
+            'дюйм': 0.0254, 'фут': 0.3048, 'ярд': 0.9144, 'миля': 1609.344,
+            'морская миля': 1852, 'световой год': 9.461e15
+        }
+    },
+    weight: {
+        label: 'Масса',
+        units: {
+            'мг': 0.000001, 'г': 0.001, 'кг': 1, 'т': 1000,
+            'унция': 0.028349523, 'фунт': 0.45359237, 'стоун': 6.35029318,
+            'карат': 0.0002, 'центнер': 100
+        }
+    },
+    temp: {
+        label: 'Температура',
+        units: { '°C': 'C', '°F': 'F', 'K': 'K', '°R': 'R' }
+    },
+    volume: {
+        label: 'Объём',
+        units: {
+            'мл': 0.001, 'л': 1, 'м³': 1000, 'см³': 0.001,
+            'чашка (US)': 0.236588, 'пинта (US)': 0.473176, 'кварта (US)': 0.946353,
+            'галлон (US)': 3.785411, 'ст. ложка': 0.014787, 'ч. ложка': 0.004929,
+            'баррель нефти': 158.987
+        }
+    },
+    area: {
+        label: 'Площадь',
+        units: {
+            'мм²': 0.000001, 'см²': 0.0001, 'м²': 1, 'км²': 1000000,
+            'га': 10000, 'сотка': 100, 'акр': 4046.856,
+            'фут²': 0.092903, 'дюйм²': 0.000645, 'ярд²': 0.836127
+        }
+    },
+    speed: {
+        label: 'Скорость',
+        units: {
+            'м/с': 1, 'км/ч': 0.277778, 'миль/ч': 0.44704,
+            'узел': 0.514444, 'фут/с': 0.3048, 'скорость звука': 343,
+            'скорость света': 299792458
+        }
+    },
+    time: {
+        label: 'Время',
+        units: {
+            'нс': 1e-9, 'мкс': 1e-6, 'мс': 0.001, 'с': 1,
+            'мин': 60, 'ч': 3600, 'д': 86400, 'нед': 604800,
+            'мес (30д)': 2592000, 'год': 31536000, 'век': 3153600000
+        }
+    },
+    digital: {
+        label: 'Данные',
+        units: {
+            'бит': 1, 'байт': 8, 'КБ': 8192, 'МБ': 8388608,
+            'ГБ': 8589934592, 'ТБ': 8796093022208, 'ПБ': 9007199254740992
+        }
+    }
+};
+
+let curUnitCat = 'length';
+
+function setUnitCat(cat, el) {
+    curUnitCat = cat;
+    document.querySelectorAll('.unit-tab').forEach(t => t.classList.remove('active'));
+    if (el) el.classList.add('active');
+    const data = unitData[cat];
+    const keys = Object.keys(data.units);
+    const fromSel = document.getElementById('unitFrom');
+    const toSel = document.getElementById('unitTo');
+    fromSel.innerHTML = keys.map(k => `<option value="${k}">${k}</option>`).join('');
+    toSel.innerHTML = keys.map(k => `<option value="${k}">${k}</option>`).join('');
+    // Default sensible selections
+    if (keys.length > 1) toSel.selectedIndex = Math.min(3, keys.length-1);
+    document.getElementById('unitVal').value = '';
+    document.getElementById('unitResult').value = '';
+    document.getElementById('unitResultBox').style.display = 'none';
+}
+
+function convertUnit() {
+    const val = parseFloat(document.getElementById('unitVal').value);
+    if (isNaN(val)) { document.getElementById('unitResult').value = ''; document.getElementById('unitResultBox').style.display='none'; return; }
+    const from = document.getElementById('unitFrom').value;
+    const to = document.getElementById('unitTo').value;
+    const data = unitData[curUnitCat];
+
+    let result;
+    if (curUnitCat === 'temp') {
+        result = convertTemp(val, data.units[from], data.units[to]);
+    } else {
+        const fromFactor = data.units[from];
+        const toFactor = data.units[to];
+        result = val * fromFactor / toFactor;
+    }
+
+    const formatted = formatNumber(result);
+    document.getElementById('unitResult').value = formatted;
+    const box = document.getElementById('unitResultBox');
+    box.innerText = `${val} ${from} = ${formatted} ${to}`;
+    box.style.display = 'flex';
+}
+
+function convertTemp(val, from, to) {
+    // Convert to Celsius first
+    let celsius;
+    if (from === 'C') celsius = val;
+    else if (from === 'F') celsius = (val - 32) * 5/9;
+    else if (from === 'K') celsius = val - 273.15;
+    else if (from === 'R') celsius = (val - 491.67) * 5/9;
+    // From Celsius to target
+    if (to === 'C') return celsius;
+    if (to === 'F') return celsius * 9/5 + 32;
+    if (to === 'K') return celsius + 273.15;
+    if (to === 'R') return (celsius + 273.15) * 9/5;
+    return celsius;
+}
+
+function formatNumber(n) {
+    if (Math.abs(n) < 0.0001 || Math.abs(n) > 1e12) return n.toExponential(6);
+    const decimals = Math.abs(n) < 1 ? 8 : Math.abs(n) < 100 ? 6 : 4;
+    const str = parseFloat(n.toFixed(decimals)).toString();
+    return str;
+}
+
+function swapUnits() {
+    const f = document.getElementById('unitFrom');
+    const t = document.getElementById('unitTo');
+    const fv = f.value, tv = t.value;
+    f.value = tv; t.value = fv;
+    // Swap values too
+    const rv = document.getElementById('unitResult').value;
+    const iv = document.getElementById('unitVal').value;
+    document.getElementById('unitVal').value = rv;
+    document.getElementById('unitResult').value = iv;
+    convertUnit();
+}
+
+// Init units
+(function() {
+    setUnitCat('length');
+    document.querySelector('.unit-tab').classList.add('active');
+})();
+
+/* ======== КОНВЕРТЕР ЦВЕТОВ — ПРОФЕССИОНАЛЬНЫЙ ПИКЕР ======== */
+// State: HSV + alpha
+let cpH = 276, cpS = 65.6, cpV = 96.9, cpA = 100;
+
+const PRESETS = [
+    '#FF6B6B','#FF8E53','#FFC947','#FFEB3B','#A8E063','#56D364',
+    '#26D0CE','#1A2980','#7F00FF','#E100FF','#FF0080','#FF4757',
+    '#2ED573','#1E90FF','#FFA502','#ECCC68','#A29BFE','#FD79A8',
+    '#00B894','#E17055','#6C5CE7','#FFFFFF','#888888','#000000'
+];
+
+function hsvToRgb(h,s,v) {
+    s/=100; v/=100;
+    const c=v*s, x=c*(1-Math.abs((h/60)%2-1)), m=v-c;
+    let r=0,g=0,b=0;
+    if(h<60){r=c;g=x;}else if(h<120){r=x;g=c;}else if(h<180){g=c;b=x;}
+    else if(h<240){g=x;b=c;}else if(h<300){r=x;b=c;}else{r=c;b=x;}
+    return {r:Math.round((r+m)*255),g:Math.round((g+m)*255),b:Math.round((b+m)*255)};
+}
+function rgbToHsv(r,g,b) {
+    r/=255;g/=255;b/=255;
+    const max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min;
+    let h=0,s=max===0?0:d/max,v=max;
+    if(d!==0){
+        if(max===r)h=((g-b)/d)%6;
+        else if(max===g)h=(b-r)/d+2;
+        else h=(r-g)/d+4;
+        h=Math.round(h*60); if(h<0)h+=360;
+    }
+    return {h,s:s*100,v:v*100};
+}
+function hexToRgb(hex) {
+    const c=hex.replace('#','');
+    if(c.length!==6)return null;
+    return {r:parseInt(c.slice(0,2),16),g:parseInt(c.slice(2,4),16),b:parseInt(c.slice(4,6),16)};
+}
+function rgbToHex(r,g,b) {
+    return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+function rgbToHsl(r,g,b) {
+    r/=255;g/=255;b/=255;
+    const max=Math.max(r,g,b),min=Math.min(r,g,b);
+    let h,s,l=(max+min)/2;
+    if(max===min){h=s=0;}
+    else{
+        const d=max-min;s=l>0.5?d/(2-max-min):d/(max+min);
+        switch(max){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;default:h=((r-g)/d+4)/6;}
+    }
+    return{h:Math.round(h*360),s:Math.round(s*100),l:Math.round(l*100)};
+}
+
+function cpUpdateUI() {
+    const {r,g,b} = hsvToRgb(cpH,cpS,cpV);
+    const hex = rgbToHex(r,g,b);
+    const hsl = rgbToHsl(r,g,b);
+    const alpha = cpA/100;
+
+    // Stage background (pure hue)
+    const stage = document.getElementById('colorStage');
+    if(stage) stage.style.background = `hsl(${cpH},100%,50%)`;
+
+    // Cursor position in stage (S=x, 1-V=y)
+    const cursor = document.getElementById('stageCursor');
+    if(cursor){ cursor.style.left=cpS+'%'; cursor.style.top=(100-cpV)+'%'; }
+
+    // Hue thumb
+    const hueThumb = document.getElementById('hueThumb');
+    if(hueThumb){ hueThumb.style.left=(cpH/360*100)+'%'; hueThumb.style.background=`hsl(${cpH},100%,50%)`; }
+
+    // Alpha bar + thumb
+    const alphaBg = document.getElementById('alphaBarInner');
+    if(alphaBg) alphaBg.style.background=`linear-gradient(to right, transparent, ${hex})`;
+    const alphaThumb = document.getElementById('alphaThumb');
+    if(alphaThumb) alphaThumb.style.left=cpA+'%';
+
+    // Swatch
+    const swatch = document.getElementById('colorSwatchFill');
+    if(swatch) swatch.style.background = alpha<1 ? `rgba(${r},${g},${b},${alpha})` : hex;
+
+    // HEX input (only update if not focused)
+    const hexIn = document.getElementById('colorHexIn');
+    if(hexIn && document.activeElement!==hexIn) hexIn.value = hex.toUpperCase();
+
+    // Values
+    const cvHex = document.getElementById('cvHex');
+    const cvRgb = document.getElementById('cvRgb');
+    const cvHsl = document.getElementById('cvHsl');
+    if(cvHex) cvHex.innerText = alpha<1 ? `${hex} / ${Math.round(alpha*100)}%` : hex.toLowerCase();
+    if(cvRgb) cvRgb.innerText = alpha<1 ? `${r}, ${g}, ${b}, ${alpha.toFixed(2)}` : `${r}, ${g}, ${b}`;
+    if(cvHsl) cvHsl.innerText = `${hsl.h}°, ${hsl.s}%, ${hsl.l}%`;
+
+    // Shades strip
+    renderShades(cpH, hsl.s);
+}
+
+function renderShades(h, s) {
+    const el = document.getElementById('colorShades');
+    if(!el) return;
+    el.innerHTML = '';
+    for(let i=0;i<=10;i++){
+        const l = 5+i*9;
+        const div = document.createElement('div');
+        div.className = 'color-shade-chip';
+        div.style.background = `hsl(${h},${s}%,${l}%)`;
+        div.title = `hsl(${h},${s}%,${l}%)`;
+        div.onclick = () => {
+            const c=hslToHex(h,s,l);
+            const rgb=hexToRgb(c);
+            if(rgb){const hsv=rgbToHsv(rgb.r,rgb.g,rgb.b);cpH=hsv.h;cpS=hsv.s;cpV=hsv.v;cpUpdateUI();}
+        };
+        el.appendChild(div);
+    }
+}
+
+function hslToHex(h,s,l){
+    s/=100;l/=100;
+    const a=s*Math.min(l,1-l);
+    const f=n=>{const k=(n+h/30)%12;const c=l-a*Math.max(Math.min(k-3,9-k,1),-1);return Math.round(255*c).toString(16).padStart(2,'0');};
+    return `#${f(0)}${f(8)}${f(4)}`;
+}
+
+// Stage drag
+function initStage(){
+    const stage = document.getElementById('colorStage');
+    if(!stage) return;
+    function onMove(e){
+        const r=stage.getBoundingClientRect();
+        const cx=(e.touches?e.touches[0].clientX:e.clientX);
+        const cy=(e.touches?e.touches[0].clientY:e.clientY);
+        cpS=Math.max(0,Math.min(100,(cx-r.left)/r.width*100));
+        cpV=Math.max(0,Math.min(100,100-(cy-r.top)/r.height*100));
+        cpUpdateUI();
+    }
+    let dragging=false;
+    stage.addEventListener('mousedown',e=>{dragging=true;onMove(e);});
+    stage.addEventListener('touchstart',e=>{dragging=true;onMove(e);},{passive:true});
+    document.addEventListener('mousemove',e=>{if(dragging)onMove(e);});
+    document.addEventListener('touchmove',e=>{if(dragging)onMove(e);},{passive:true});
+    document.addEventListener('mouseup',()=>dragging=false);
+    document.addEventListener('touchend',()=>dragging=false);
+}
+
+function onHueChange(){
+    cpH=parseInt(document.getElementById('hueRange').value);
+    cpUpdateUI();
+}
+function onAlphaChange(){
+    cpA=parseInt(document.getElementById('alphaRange').value);
+    cpUpdateUI();
+}
+function colorFromHex(){
+    const hex=document.getElementById('colorHexIn').value.trim();
+    const full = hex.startsWith('#')?hex:'#'+hex;
+    if(!/^#[0-9a-fA-F]{6}$/.test(full))return;
+    const rgb=hexToRgb(full);
+    if(!rgb)return;
+    const hsv=rgbToHsv(rgb.r,rgb.g,rgb.b);
+    cpH=hsv.h; cpS=hsv.s; cpV=hsv.v;
+    document.getElementById('hueRange').value=cpH;
+    cpUpdateUI();
+}
+
+function initPresets(){
+    const el=document.getElementById('colorPresets');
+    if(!el)return;
+    PRESETS.forEach(c=>{
+        const d=document.createElement('div');
+        d.className='color-preset';
+        d.style.background=c;
+        d.title=c;
+        d.onclick=()=>{
+            const rgb=hexToRgb(c);
+            if(rgb){const hsv=rgbToHsv(rgb.r,rgb.g,rgb.b);cpH=hsv.h;cpS=hsv.s;cpV=hsv.v;document.getElementById('hueRange').value=cpH;cpUpdateUI();}
+        };
+        el.appendChild(d);
+    });
+}
+
+// Init color picker
+initStage();
+initPresets();
+cpUpdateUI();
+
+/* ======== ГЕНЕРАТОР ГРАДИЕНТОВ ======== */
+let gradType='linear';
+let gradStops=[{color:'#a855f7',pos:0},{color:'#ff6ef7',pos:100}];
+
+const GRAD_PRESETS=[
+    {name:'Закат',stops:['#f7971e','#ffd200'],angle:135},
+    {name:'Океан',stops:['#2193b0','#6dd5ed'],angle:135},
+    {name:'Лес',stops:['#11998e','#38ef7d'],angle:135},
+    {name:'Огонь',stops:['#f12711','#f5af19'],angle:135},
+    {name:'Ночь',stops:['#0f0c29','#302b63','#24243e'],angle:135},
+    {name:'Лето',stops:['#f953c6','#b91d73'],angle:135},
+    {name:'Арктика',stops:['#d7d2cc','#304352'],angle:135},
+    {name:'Фиолет',stops:['#a855f7','#ff6ef7'],angle:135},
+    {name:'Закат2',stops:['#fc5c7d','#6a82fb'],angle:135},
+    {name:'Мята',stops:['#00b09b','#96c93d'],angle:135},
+];
+
+function setGradType(t,el){
+    gradType=t;
+    document.querySelectorAll('.gradient-type-btn').forEach(b=>b.classList.remove('active'));
+    if(el)el.classList.add('active');
+    document.getElementById('gradAngleWrap').style.display = t==='linear'?'block':'none';
+    renderGradient();
+}
+
+function renderGradStops(){
+    const el=document.getElementById('gradientStops');
+    el.innerHTML='';
+    gradStops.forEach((s,i)=>{
+        const row=document.createElement('div');
+        row.className='gradient-stop-row';
+        row.innerHTML=`
+            <div class="gradient-stop-swatch" style="background:${s.color};">
+                <input type="color" value="${s.color}" oninput="gradStops[${i}].color=this.value;this.parentElement.style.background=this.value;renderGradient();">
+            </div>
+            <input type="range" min="0" max="100" value="${s.pos}" oninput="gradStops[${i}].pos=parseInt(this.value);document.getElementById('gradPos${i}').innerText=this.value+'%';renderGradient();" style="flex:1;margin:0;">
+            <span id="gradPos${i}" style="font-size:12px;font-weight:700;color:var(--text-muted);min-width:36px;text-align:right;">${s.pos}%</span>
+            ${gradStops.length>2?`<button onclick="removeGradStop(${i})" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px;padding:4px;border-radius:6px;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-muted)'">✕</button>`:''}
+        `;
+        el.appendChild(row);
+    });
+}
+
+function renderGradient(){
+    renderGradStops();
+    const sorted=[...gradStops].sort((a,b)=>a.pos-b.pos);
+    const stops=sorted.map(s=>`${s.color} ${s.pos}%`).join(', ');
+    const angle=document.getElementById('gradAngle')?document.getElementById('gradAngle').value:135;
+    let css='';
+    if(gradType==='linear') css=`linear-gradient(${angle}deg, ${stops})`;
+    else if(gradType==='radial') css=`radial-gradient(circle, ${stops})`;
+    else css=`conic-gradient(from 0deg, ${stops})`;
+
+    const prev=document.getElementById('gradientPreview');
+    const cssBox=document.getElementById('gradientCSS');
+    if(prev) prev.style.background=css;
+    if(cssBox){ cssBox.innerText=`background: ${css};`; }
+}
+
+function addGradStop(){
+    const midPos=Math.round((gradStops[0].pos+gradStops[gradStops.length-1].pos)/2+Math.random()*20-10);
+    gradStops.push({color:'#'+Math.floor(Math.random()*0xffffff).toString(16).padStart(6,'0'),pos:Math.max(0,Math.min(100,midPos))});
+    renderGradient();
+}
+function removeGradStop(i){
+    gradStops.splice(i,1);
+    renderGradient();
+}
+function copyGradientCSS(){
+    const box=document.getElementById('gradientCSS');
+    if(!box)return;
+    navigator.clipboard.writeText(box.innerText).catch(()=>{});
+    const prev=document.getElementById('gradientPreview');
+    if(prev){
+        const old=prev.style.transition;
+        prev.style.outline='2px solid var(--primary-color)';
+        setTimeout(()=>prev.style.outline='',1200);
+    }
+    const orig=box.innerText;
+    box.innerText='✅ Скопировано!';
+    setTimeout(()=>box.innerText=orig,1400);
+}
+
+function initGradPresets(){
+    const el=document.getElementById('gradPresets');
+    if(!el)return;
+    GRAD_PRESETS.forEach(p=>{
+        const stops=p.stops.map((c,i)=>`${c} ${Math.round(i/(p.stops.length-1)*100)}%`).join(', ');
+        const css=`linear-gradient(${p.angle}deg, ${stops})`;
+        const div=document.createElement('div');
+        div.style.cssText=`background:${css};height:50px;border-radius:12px;cursor:pointer;border:1.5px solid var(--border-color);transition:0.2s;position:relative;overflow:hidden;`;
+        div.title=p.name;
+        div.innerHTML=`<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.4);text-align:center;font-size:9px;font-weight:800;color:white;padding:3px 0;font-family:'Manrope',sans-serif;">${p.name}</div>`;
+        div.onmouseover=()=>div.style.transform='scale(1.05)';
+        div.onmouseout=()=>div.style.transform='';
+        div.onclick=()=>{
+            gradStops=p.stops.map((c,i)=>({color:c,pos:Math.round(i/(p.stops.length-1)*100)}));
+            document.getElementById('gradAngle').value=p.angle;
+            document.getElementById('gradAngleVal').innerText=p.angle+'°';
+            renderGradient();
+        };
+        el.appendChild(div);
+    });
+}
+
+initGradPresets();
+renderGradient();
+
+/* ======== СПИСОК ЗАДАЧ ======== */
+let todos = JSON.parse(localStorage.getItem('miniTodos') || '[]');
+let todoFilter = 'all';
+
+function saveTodos() { localStorage.setItem('miniTodos', JSON.stringify(todos)); }
+
+function addTodo() {
+    const input = document.getElementById('todoInput');
+    const text = input.value.trim();
+    if (!text) return;
+    todos.unshift({ id: Date.now(), text, done: false });
+    input.value = '';
+    saveTodos();
+    renderTodos();
+}
+
+function toggleTodo(id) {
+    const t = todos.find(t => t.id === id);
+    if (t) { t.done = !t.done; saveTodos(); renderTodos(); }
+}
+
+function deleteTodo(id) {
+    todos = todos.filter(t => t.id !== id);
+    saveTodos();
+    renderTodos();
+}
+
+function clearDoneTodos() {
+    todos = todos.filter(t => !t.done);
+    saveTodos();
+    renderTodos();
+}
+
+function setTodoFilter(f, el) {
+    todoFilter = f;
+    document.querySelectorAll('.todo-filter-btn').forEach(b => b.classList.remove('active'));
+    if (el) el.classList.add('active');
+    renderTodos();
+}
+
+function renderTodos() {
+    const list = document.getElementById('todoList');
+    const empty = document.getElementById('todoEmpty');
+    const filtered = todos.filter(t => {
+        if (todoFilter === 'active') return !t.done;
+        if (todoFilter === 'done') return t.done;
+        return true;
+    });
+    list.innerHTML = '';
+    if (filtered.length === 0) {
+        empty.style.display = 'block';
+    } else {
+        empty.style.display = 'none';
+        filtered.forEach(t => {
+            const div = document.createElement('div');
+            div.className = 'todo-item' + (t.done ? ' done' : '');
+            div.innerHTML = `
+                <div class="todo-check ${t.done ? 'checked' : ''}" onclick="toggleTodo(${t.id})">${t.done ? '✓' : ''}</div>
+                <div class="todo-text" onclick="toggleTodo(${t.id})">${escapeHtml(t.text)}</div>
+                <button class="todo-del" onclick="deleteTodo(${t.id})">✕</button>
+            `;
+            list.appendChild(div);
+        });
+    }
+    const done = todos.filter(t => t.done).length;
+    document.getElementById('todoStats').innerText = `${done} из ${todos.length} выполнено`;
+}
+
+function escapeHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+renderTodos();
+
+/* ======== КАЛЬКУЛЯТОР ТЕЛА ======== */
+function calcBody() {
+    const gender = document.getElementById('bodyGender').value;
+    const age    = parseFloat(document.getElementById('bodyAge').value);
+    const height = parseFloat(document.getElementById('bodyHeight').value);
+    const weight = parseFloat(document.getElementById('bodyWeight').value);
+    const activity = parseFloat(document.getElementById('bodyActivity').value);
+
+    if ([age,height,weight].some(isNaN) || age<1 || height<50 || weight<10) {
+        document.getElementById('bodyResults').style.display = 'none';
+        return;
+    }
+
+    // BMI
+    const bmi = weight / ((height/100) ** 2);
+    let bmiLabel = '', bmiColor = '';
+    if      (bmi < 18.5) { bmiLabel='Дефицит веса'; bmiColor='#2ed573'; }
+    else if (bmi < 25)   { bmiLabel='Нормальный вес'; bmiColor='#2ed573'; }
+    else if (bmi < 30)   { bmiLabel='Избыточный вес'; bmiColor='#ffa502'; }
+    else                  { bmiLabel='Ожирение'; bmiColor='#ff4757'; }
+
+    // BMR (Mifflin–St Jeor)
+    const bmr = gender==='m'
+        ? 10*weight + 6.25*height - 5*age + 5
+        : 10*weight + 6.25*height - 5*age - 161;
+
+    const tdee = Math.round(bmr * activity);
+
+    // Ideal weight (Broca)
+    const idealWeight = gender==='m' ? height - 100 : height - 110;
+
+    // Water norm (ml)
+    const water = Math.round(weight * 30);
+
+    // Body fat % estimate (US Navy approximation via BMI)
+    const fatM = (1.20 * bmi) + (0.23 * age) - 16.2;
+    const fatF = (1.20 * bmi) + (0.23 * age) - 5.4;
+    const fat  = Math.max(3, Math.round(gender==='m' ? fatM : fatF));
+
+    const stats = [
+        { label:'ИМТ', val: bmi.toFixed(1), sub: bmiLabel, color: bmiColor },
+        { label:'Норма калорий/день', val: tdee + ' ккал', sub: 'для поддержания веса', color: 'var(--primary-color)' },
+        { label:'Норма воды/день', val: (water/1000).toFixed(1) + ' л', sub: weight+'кг × 30мл', color: '#1e90ff' },
+        { label:'Идеальный вес', val: idealWeight + ' кг', sub: 'формула Брока', color: '#2ed573' },
+        { label:'Жировая масса (оценка)', val: fat + '%', sub: gender==='m'?'норма 10–20%':'норма 18–28%', color: '#ffa502' },
+        { label:'Базовый обмен', val: Math.round(bmr) + ' ккал', sub: 'в состоянии покоя', color: '#ff6ef7' },
+    ];
+
+    const grid = document.getElementById('bodyGrid');
+    grid.innerHTML = stats.map(s => `
+        <div style="background:var(--surface2);border:1.5px solid var(--border-color);border-radius:14px;padding:16px;text-align:center;">
+            <div style="font-size:22px;font-weight:900;color:${s.color};font-family:'Unbounded',sans-serif;">${s.val}</div>
+            <div style="font-size:10px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin:5px 0 3px;font-family:'Unbounded',sans-serif;">${s.label}</div>
+            <div style="font-size:10px;color:var(--text-muted);">${s.sub}</div>
+        </div>
+    `).join('');
+
+    // BMI bar marker (scale 15–40)
+    const pct = Math.max(0, Math.min(100, (bmi - 15) / 25 * 100));
+    document.getElementById('bodyBmiMarker').style.left = pct + '%';
+
+    document.getElementById('bodyResults').style.display = 'block';
+}
+
+/* ======== КРЕДИТНЫЙ КАЛЬКУЛЯТОР ======== */
+function calcLoan() {
+    const amount  = parseFloat(document.getElementById('loanAmount').value);
+    const months  = parseInt(document.getElementById('loanMonths').value);
+    const rateYear= parseFloat(document.getElementById('loanRate').value);
+
+    if ([amount,months,rateYear].some(isNaN) || amount<=0 || months<=0 || rateYear<0) {
+        document.getElementById('loanResults').style.display = 'none';
+        return;
+    }
+
+    const r = rateYear / 100 / 12; // monthly rate
+    let monthlyPayment;
+    if (r === 0) {
+        monthlyPayment = amount / months;
+    } else {
+        monthlyPayment = amount * r * Math.pow(1+r, months) / (Math.pow(1+r, months) - 1);
+    }
+    const totalPay    = monthlyPayment * months;
+    const overpay     = totalPay - amount;
+    const overpayPct  = (overpay / amount * 100).toFixed(1);
+    const bodyPct     = Math.round(amount / totalPay * 100);
+    const intPct      = 100 - bodyPct;
+
+    const fmt = n => Math.round(n).toLocaleString('ru-RU');
+
+    const stats = [
+        { label:'Ежемесячный платёж', val: fmt(monthlyPayment) + ' ₽', color:'var(--primary-color)' },
+        { label:'Общая сумма выплат',  val: fmt(totalPay) + ' ₽',      color:'#ffa502' },
+        { label:'Переплата',           val: fmt(overpay) + ' ₽',        color:'#ff4757' },
+        { label:'Переплата в %',       val: overpayPct + '%',            color:'#ff4757' },
+    ];
+
+    document.getElementById('loanGrid').innerHTML = stats.map(s => `
+        <div style="background:var(--surface2);border:1.5px solid var(--border-color);border-radius:14px;padding:16px;text-align:center;">
+            <div style="font-size:20px;font-weight:900;color:${s.color};font-family:'Unbounded',sans-serif;">${s.val}</div>
+            <div style="font-size:10px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-top:6px;font-family:'Unbounded',sans-serif;">${s.label}</div>
+        </div>
+    `).join('');
+
+    const bb = document.getElementById('loanBodyBar');
+    const ib = document.getElementById('loanInterestBar');
+    bb.style.width = bodyPct + '%';
+    ib.style.width = intPct + '%';
+    bb.innerText = bodyPct > 15 ? bodyPct+'%' : '';
+    ib.innerText = intPct > 15 ? intPct+'%' : '';
+
+    document.getElementById('loanResults').style.display = 'block';
+}
+
+/* ======== ГЛАВНАЯ — живые данные ======== */
+const TIPS = [
+    'В калькуляторе работает клавиатура — просто начни набирать цифры!',
+    'Заметки, задачи и кликер сохраняются автоматически. Закрой вкладку — данные останутся.',
+    'В конвертере единиц кнопка ⇄ мгновенно меняет "откуда" и "куда" местами.',
+    'QR-генератор работает без интернета. Можешь сменить цвет кода и фона.',
+    'В генераторе паролей отключи "похожие символы" чтобы не путать O и 0, l и 1.',
+    'В шифраторе три режима: Base64, шифр Цезаря и простой реверс текста.',
+    'В кликере 14 интересных фактов. Попробуй добраться до 1000!',
+    'В текст-инструментах можно сортировать строки по алфавиту и удалять дубликаты.',
+    'Таймер поддерживает часы — можно поставить сразу 1 час 30 минут.',
+    'В конвертере цветов перетащи курсор по квадрату насыщенности, как в Figma!',
+    'Генератор градиентов выдаёт готовый CSS — просто вставь в свой код.',
+    'В кредитном калькуляторе видно наглядно, сколько уходит на проценты 😅',
+];
+
+function initHome() {
+    const el = document.getElementById('homeClickStat');
+    if (el) el.innerText = (parseInt(localStorage.getItem('miniClick')||'0')).toLocaleString('ru-RU');
+    const tipEl = document.getElementById('tipOfDay');
+    if (tipEl) {
+        const idx = Math.floor(Date.now() / 86400000) % TIPS.length;
+        tipEl.innerText = TIPS[idx];
+    }
+}
+initHome();
+
+// Refresh home stats when navigating back
+const _origOpenTab = window.openTab;
+window.openTab = function(id) {
+    _origOpenTab(id);
+    if (id === 'home') initHome();
+};
+
+/* ======== КОНВЕРТЕР ЧИСЛОВЫХ СИСТЕМ ======== */
+let _ncUpdating = false;
+
+function ncSet(dec, oct, hex, bin) {
+    if (_ncUpdating) return;
+    _ncUpdating = true;
+    const ids = {nc_dec:dec, nc_bin:bin, nc_hex:hex, nc_oct:oct};
+    Object.entries(ids).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (el && document.activeElement !== el) el.value = val;
+    });
+    updateBitVisual(parseInt(dec) || 0);
+    _ncUpdating = false;
+}
+
+function ncFromDec() {
+    const raw = document.getElementById('nc_dec').value.trim();
+    const v = parseInt(raw);
+    if (isNaN(v) || v < 0 || raw === '') { updateBitVisual(0); return; }
+    ncSet(v, v.toString(8), v.toString(16).toUpperCase(), v.toString(2));
+}
+function ncFromBin() {
+    const raw = document.getElementById('nc_bin').value.replace(/[^01]/g,'');
+    document.getElementById('nc_bin').value = raw;
+    if (!raw) return;
+    const v = parseInt(raw, 2);
+    if (isNaN(v)) return;
+    ncSet(v, v.toString(8), v.toString(16).toUpperCase(), raw);
+}
+function ncFromHex() {
+    const raw = document.getElementById('nc_hex').value.replace(/[^0-9a-fA-F]/g,'').toUpperCase();
+    document.getElementById('nc_hex').value = raw;
+    if (!raw) return;
+    const v = parseInt(raw, 16);
+    if (isNaN(v)) return;
+    ncSet(v, v.toString(8), raw, v.toString(2));
+}
+function ncFromOct() {
+    const raw = document.getElementById('nc_oct').value.replace(/[^0-7]/g,'');
+    document.getElementById('nc_oct').value = raw;
+    if (!raw) return;
+    const v = parseInt(raw, 8);
+    if (isNaN(v)) return;
+    ncSet(v, raw, v.toString(16).toUpperCase(), v.toString(2));
+}
+function ncClear() {
+    ['nc_dec','nc_bin','nc_hex','nc_oct'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+    updateBitVisual(0);
+}
+
+function updateBitVisual(n) {
+    const el = document.getElementById('bitVisual');
+    if (!el) return;
+    el.innerHTML = '';
+    if (n === 0) {
+        const div = document.createElement('div');
+        div.style.cssText = 'color:var(--text-muted);font-size:13px;font-weight:600;padding:8px;';
+        div.innerText = 'Введи число чтобы увидеть биты';
+        el.appendChild(div); return;
+    }
+    const bits = Math.max(8, Math.ceil(Math.log2(n + 1) / 8) * 8);
+    const str = n.toString(2).padStart(bits, '0');
+    str.split('').forEach((bit, i) => {
+        if (i > 0 && i % 8 === 0) {
+            const sep = document.createElement('div');
+            sep.style.cssText = 'width:2px;height:36px;background:var(--border-color);border-radius:1px;flex-shrink:0;align-self:center;';
+            el.appendChild(sep);
+        }
+        const isOne = bit === '1';
+        const div = document.createElement('div');
+        div.style.cssText = `width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;font-family:'Courier New',monospace;border:1.5px solid ${isOne?'var(--primary-color)':'var(--border-color)'};background:${isOne?'rgba(168,85,247,0.18)':'var(--surface2)'};color:${isOne?'var(--primary-color)':'var(--text-muted)'};transition:0.12s;cursor:default;`;
+        div.title = `Бит ${bits-1-i} = ${bit}, позиция ${bits-1-i}, вес = ${Math.pow(2, bits-1-i)}`;
+        div.innerText = bit;
+        el.appendChild(div);
+    });
+}
+
+// ASCII table
+(function() {
+    const el = document.getElementById('asciiTable');
+    if (!el) return;
+    for (let i = 32; i < 127; i++) {
+        const c = String.fromCharCode(i);
+        const div = document.createElement('div');
+        div.style.cssText = 'background:var(--surface2);border:1px solid var(--border-color);border-radius:8px;padding:5px 6px;text-align:center;cursor:pointer;transition:0.15s;min-width:42px;flex-shrink:0;';
+        div.innerHTML = `<div style="font-size:15px;font-weight:700;">${c === ' ' ? '·' : c}</div><div style="font-size:9px;color:var(--text-muted);font-weight:700;font-family:'Courier New',monospace;">${i}</div>`;
+        div.title = `${c === ' ' ? 'SPACE' : c}  DEC:${i}  HEX:${i.toString(16).toUpperCase()}  BIN:${i.toString(2)}`;
+        div.onmouseover = () => { div.style.borderColor='var(--primary-color)'; div.style.transform='scale(1.08)'; };
+        div.onmouseout  = () => { div.style.borderColor='var(--border-color)'; div.style.transform=''; };
+        div.onclick = () => { document.getElementById('nc_dec').value = i; ncFromDec(); };
+        el.appendChild(div);
+    }
+    updateBitVisual(0);
+})();
+</script>
+</body>
+</html>
