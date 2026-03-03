@@ -45,8 +45,8 @@
             color: var(--text-color);
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
+            /* FIX: убрали height:100vh и overflow:hidden — это резало контент на мобильных */
+            min-height: 100vh;
             transition: background-color 0.3s, color 0.3s;
         }
 
@@ -62,6 +62,8 @@
             height: 60px;
             flex-shrink: 0;
             box-shadow: 0 2px 20px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
         }
         .header-left { display: flex; align-items: center; gap: 12px; flex: 1; }
         .logo {
@@ -152,9 +154,11 @@
         .t-icon { font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
 
         /* ===== MAIN ===== */
-        main { flex: 1; padding: 20px; overflow-y: auto; }
-        main::-webkit-scrollbar { width: 5px; }
-        main::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        main {
+            flex: 1;
+            padding: 20px 20px 0 20px;
+            /* FIX: убрали overflow-y:auto, теперь скроллится вся страница — это правильно на мобильных */
+        }
 
         .section { display: none; max-width: 860px; margin: 0 auto; animation: slideUp 0.3s cubic-bezier(0.16,1,0.3,1); }
         .section.active { display: block; }
@@ -170,13 +174,13 @@
         }
         .center-sub { text-align:center; color:var(--text-muted); margin: 0 0 20px; font-size:13px; font-weight:500; }
 
-        input:not([type="checkbox"]):not([type="range"]), select, textarea {
+        input:not([type="checkbox"]):not([type="range"]):not([type="color"]), select, textarea {
             width: 100%; padding: 13px 15px; margin: 8px 0;
             background: var(--surface2); border: 1.5px solid var(--border-color);
             color: var(--text-color); border-radius: 12px; font-size: 15px;
             outline: none; transition: border-color 0.2s, box-shadow 0.2s; font-family: 'Manrope', sans-serif;
         }
-        input:not([type="checkbox"]):not([type="range"]):focus,
+        input:not([type="checkbox"]):not([type="range"]):not([type="color"]):focus,
         select:focus, textarea:focus {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px var(--primary-glow);
@@ -344,7 +348,6 @@
         .unit-arrow { display: flex; align-items: center; justify-content: center; padding-top: 36px; color: var(--primary-color); font-size: 22px; flex-shrink: 0; cursor: pointer; }
         .unit-result { margin-top: 14px; padding: 16px 18px; background: var(--surface2); border-radius: 12px; border-left: 4px solid var(--primary-color); font-size: 18px; font-weight: 800; display: none; cursor: pointer; transition: 0.2s; }
         .unit-result:hover { background: var(--border-color); }
-        .temp-note { font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 4px; }
 
         /* ===== COLOR CONVERTER ===== */
         .color-stage {
@@ -512,6 +515,71 @@
         .todo-del { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 4px; border-radius: 6px; transition: 0.15s; flex-shrink: 0; }
         .todo-del:hover { color: var(--danger); background: rgba(255,71,87,0.1); }
 
+        /* ===== WORLD CLOCK ===== */
+        .wc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-top: 14px; }
+        .wc-card {
+            background: var(--surface2); border: 1.5px solid var(--border-color);
+            border-radius: 16px; padding: 16px; text-align: center; transition: 0.2s;
+            cursor: pointer; position: relative; overflow: hidden;
+        }
+        .wc-card:hover { border-color: var(--primary-color); transform: translateY(-3px); box-shadow: 0 8px 20px var(--primary-glow); }
+        .wc-card.highlight { border-color: var(--primary-color); background: rgba(168,85,247,0.08); }
+        .wc-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--primary-color); transform: scaleX(0); transition: 0.2s; transform-origin: left; }
+        .wc-card:hover::before, .wc-card.highlight::before { transform: scaleX(1); }
+        .wc-flag { font-size: 28px; margin-bottom: 6px; }
+        .wc-city { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; font-family: 'Unbounded', sans-serif; margin-bottom: 4px; }
+        .wc-time { font-size: 28px; font-weight: 900; color: var(--primary-color); font-family: 'Courier New', monospace; letter-spacing: 1px; }
+        .wc-date { font-size: 10px; color: var(--text-muted); margin-top: 3px; font-weight: 600; }
+        .wc-offset { font-size: 9px; color: var(--text-muted); margin-top: 2px; }
+
+        /* ===== FOOTER ===== */
+        footer {
+            background: var(--surface-color);
+            border-top: 1px solid var(--border-color);
+            padding: 20px;
+            margin-top: 32px;
+            text-align: center;
+        }
+        .footer-inner {
+            max-width: 860px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .footer-logo {
+            font-family: 'Unbounded', sans-serif;
+            font-weight: 900;
+            font-size: 14px;
+            color: var(--primary-color);
+            letter-spacing: -0.5px;
+        }
+        .footer-tools {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+        }
+        .footer-tool-link {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-family: 'Manrope', sans-serif;
+            transition: 0.15s;
+        }
+        .footer-tool-link:hover { color: var(--primary-color); background: var(--primary-glow); }
+        .footer-copy {
+            font-size: 10px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
         select option { background: var(--surface-color); }
     </style>
 </head>
@@ -561,6 +629,7 @@
         <button class="tab-btn" onclick="openTab('timer')"><span class="t-icon">⏱️</span>Таймер / Секундомер</button>
         <button class="tab-btn" onclick="openTab('cipher')"><span class="t-icon">🕵️</span>Шифратор</button>
         <button class="tab-btn" onclick="openTab('numconv')"><span class="t-icon">🔢</span>Числовые системы</button>
+        <button class="tab-btn" onclick="openTab('worldclock')"><span class="t-icon">🌍</span>Мировое время</button>
         <button class="tab-btn" onclick="openTab('bodyinfo')"><span class="t-icon">💪</span>Калькулятор тела</button>
         <button class="tab-btn" onclick="openTab('loan')"><span class="t-icon">🏦</span>Кредитный калькулятор</button>
 
@@ -576,22 +645,17 @@
     <!-- ГЛАВНАЯ -->
     <div id="home" class="section active">
 
-        <!-- Hero -->
         <div class="hero">
             <h2>MiniTools PRO</h2>
-            <div class="info-badge">v6.0 — 22 инструмента · Всё в одном</div>
+            <div class="info-badge">v6.1 — 23 инструмента · Всё в одном</div>
             <p>Твой личный цифровой швейцарский нож — быстро, без рекламы, без регистрации. Всё работает прямо в браузере.</p>
         </div>
 
-        <!-- Stats strip -->
-        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:28px;">
+        <!-- Stats strip — убрали "0 рекламы", добавили время -->
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:28px;">
             <div style="background:var(--surface-color); border:1.5px solid var(--border-color); border-radius:16px; padding:16px 10px; text-align:center;">
-                <div style="font-size:26px; font-weight:900; color:var(--primary-color); font-family:'Unbounded',sans-serif; line-height:1;">22</div>
+                <div style="font-size:26px; font-weight:900; color:var(--primary-color); font-family:'Unbounded',sans-serif; line-height:1;">23</div>
                 <div style="font-size:9px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:1.5px; margin-top:5px; font-family:'Unbounded',sans-serif;">инструмента</div>
-            </div>
-            <div style="background:var(--surface-color); border:1.5px solid var(--border-color); border-radius:16px; padding:16px 10px; text-align:center;">
-                <div style="font-size:26px; font-weight:900; color:#2ed573; font-family:'Unbounded',sans-serif; line-height:1;">0</div>
-                <div style="font-size:9px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:1.5px; margin-top:5px; font-family:'Unbounded',sans-serif;">рекламы</div>
             </div>
             <div style="background:var(--surface-color); border:1.5px solid var(--border-color); border-radius:16px; padding:16px 10px; text-align:center;">
                 <div style="font-size:26px; font-weight:900; color:#1e90ff; font-family:'Unbounded',sans-serif; line-height:1;">∞</div>
@@ -661,6 +725,7 @@
                     <div class="dash-card" onclick="openTab('timer')"><div class="dash-icon">⏱️</div><span>Таймер</span></div>
                     <div class="dash-card" onclick="openTab('cipher')"><div class="dash-icon">🕵️</div><span>Шифратор</span></div>
                     <div class="dash-card" onclick="openTab('numconv')"><div class="dash-icon">🔢</div><span>Числа</span></div>
+                    <div class="dash-card" onclick="openTab('worldclock')"><div class="dash-icon">🌍</div><span>Мировое время</span></div>
                 </div>
             </div>
             <div>
@@ -672,28 +737,28 @@
             </div>
         </div>
 
-        <!-- Changelog / what's new -->
+        <!-- Changelog -->
         <div style="margin-top:28px; background:var(--surface-color); border:1.5px solid var(--border-color); border-radius:20px; padding:22px;">
             <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
                 <div style="font-size:18px;">🆕</div>
-                <div style="font-weight:900; font-size:14px; font-family:'Unbounded',sans-serif; color:var(--primary-color);">Что нового в v6.0</div>
+                <div style="font-weight:900; font-size:14px; font-family:'Unbounded',sans-serif; color:var(--primary-color);">Что нового в v6.1</div>
             </div>
             <div style="display:flex; flex-direction:column; gap:10px;">
                 <div style="display:flex; gap:12px; align-items:flex-start;">
                     <div style="background:rgba(168,85,247,0.15); color:var(--primary-color); border-radius:8px; padding:4px 10px; font-size:10px; font-weight:800; flex-shrink:0; font-family:'Unbounded',sans-serif;">NEW</div>
-                    <div style="font-size:13px; color:var(--text-muted); line-height:1.5;"><b style="color:var(--text-color);">🔢 Конвертер числовых систем</b> — HEX, DEC, BIN, OCT одним нажатием</div>
-                </div>
-                <div style="display:flex; gap:12px; align-items:flex-start;">
-                    <div style="background:rgba(168,85,247,0.15); color:var(--primary-color); border-radius:8px; padding:4px 10px; font-size:10px; font-weight:800; flex-shrink:0; font-family:'Unbounded',sans-serif;">NEW</div>
-                    <div style="font-size:13px; color:var(--text-muted); line-height:1.5;"><b style="color:var(--text-color);">⚡ Кликер 2.0</b> — 14 интересных фактов, 7 достижений, анимации</div>
-                </div>
-                <div style="display:flex; gap:12px; align-items:flex-start;">
-                    <div style="background:rgba(46,213,115,0.15); color:#2ed573; border-radius:8px; padding:4px 10px; font-size:10px; font-weight:800; flex-shrink:0; font-family:'Unbounded',sans-serif;">UPD</div>
-                    <div style="font-size:13px; color:var(--text-muted); line-height:1.5;"><b style="color:var(--text-color);">Главная страница</b> — статистика, карточки с описанием, changelog</div>
+                    <div style="font-size:13px; color:var(--text-muted); line-height:1.5;"><b style="color:var(--text-color);">🌍 Мировое время</b> — 16 городов мира с живым временем</div>
                 </div>
                 <div style="display:flex; gap:12px; align-items:flex-start;">
                     <div style="background:rgba(30,144,255,0.15); color:#1e90ff; border-radius:8px; padding:4px 10px; font-size:10px; font-weight:800; flex-shrink:0; font-family:'Unbounded',sans-serif;">FIX</div>
-                    <div style="font-size:13px; color:var(--text-muted); line-height:1.5;"><b style="color:var(--text-color);">Таймер</b> — кнопки теперь реагируют корректно во время отсчёта</div>
+                    <div style="font-size:13px; color:var(--text-muted); line-height:1.5;"><b style="color:var(--text-color);">Мобильные устройства</b> — исправлен обрезанный низ страниц на iOS/Android</div>
+                </div>
+                <div style="display:flex; gap:12px; align-items:flex-start;">
+                    <div style="background:rgba(46,213,115,0.15); color:#2ed573; border-radius:8px; padding:4px 10px; font-size:10px; font-weight:800; flex-shrink:0; font-family:'Unbounded',sans-serif;">UPD</div>
+                    <div style="font-size:13px; color:var(--text-muted); line-height:1.5;"><b style="color:var(--text-color);">Футер</b> — добавлен на все страницы с быстрой навигацией</div>
+                </div>
+                <div style="display:flex; gap:12px; align-items:flex-start;">
+                    <div style="background:rgba(30,144,255,0.15); color:#1e90ff; border-radius:8px; padding:4px 10px; font-size:10px; font-weight:800; flex-shrink:0; font-family:'Unbounded',sans-serif;">FIX</div>
+                    <div style="font-size:13px; color:var(--text-muted); line-height:1.5;"><b style="color:var(--text-color);">Знак Зодиака</b> — исправлен алгоритм определения знаков</div>
                 </div>
             </div>
         </div>
@@ -794,7 +859,7 @@
         </div>
     </div>
 
-    <!-- КОНВЕРТЕР ЕДИНИЦ (новый!) -->
+    <!-- КОНВЕРТЕР ЕДИНИЦ -->
     <div id="units" class="section card">
         <h2 class="center-title">📐 Конвертер Единиц</h2>
         <p class="center-sub">Длина, масса, температура, объём и другие</p>
@@ -910,27 +975,19 @@
     <div id="colorconv" class="section card">
         <h2 class="center-title">🎨 Конвертер Цветов</h2>
         <p class="center-sub">Профессиональный пикер цветов</p>
-
-        <!-- Saturation/Brightness canvas -->
         <div class="color-stage" id="colorStage">
             <div class="color-stage-overlay"></div>
             <div class="color-stage-cursor" id="stageCursor" style="left:80%;top:20%;"></div>
         </div>
-
-        <!-- Hue bar -->
         <div class="color-hue-bar">
             <input type="range" id="hueRange" min="0" max="360" value="276" oninput="onHueChange()">
             <div class="color-hue-thumb" id="hueThumb" style="left:76.6%;background:hsl(276,100%,50%);"></div>
         </div>
-
-        <!-- Alpha bar -->
         <div class="color-alpha-bar">
             <div class="color-alpha-bar-inner" id="alphaBarInner"></div>
             <input type="range" id="alphaRange" min="0" max="100" value="100" oninput="onAlphaChange()">
             <div class="color-alpha-thumb" id="alphaThumb" style="left:100%;"></div>
         </div>
-
-        <!-- Swatch + HEX input -->
         <div class="color-bottom-row">
             <div class="color-swatch-big">
                 <div class="color-swatch-fill" id="colorSwatchFill" style="background:#a855f7;"></div>
@@ -939,8 +996,6 @@
                 <input type="text" id="colorHexIn" value="#A855F7" placeholder="#RRGGBB" oninput="colorFromHex()" maxlength="7">
             </div>
         </div>
-
-        <!-- Values -->
         <div class="color-values">
             <div class="color-val-box" onclick="copyText(document.getElementById('cvHex').innerText, this)">
                 <div class="color-val-label">HEX</div>
@@ -956,44 +1011,34 @@
             </div>
         </div>
         <div class="copy-hint" style="margin-top:8px;">кликни на блок чтобы скопировать</div>
-
-        <!-- Preset colours -->
         <div class="sec-divider"></div>
         <div class="section-label">Пресеты</div>
         <div class="color-presets" id="colorPresets"></div>
-
-        <!-- Shades -->
         <div class="sec-divider"></div>
         <div class="section-label">Оттенки</div>
         <div class="color-shades-strip" id="colorShades"></div>
     </div>
 
-    <!-- ГЕНЕРАТОР ГРАДИЕНТОВ (новый!) -->
+    <!-- ГЕНЕРАТОР ГРАДИЕНТОВ -->
     <div id="gradient" class="section card">
         <h2 class="center-title">🌈 Градиенты</h2>
         <p class="center-sub">Создавай красивые CSS-градиенты</p>
-
         <div class="gradient-preview" id="gradientPreview" onclick="copyGradientCSS()"></div>
-
         <div class="gradient-type-row">
             <button class="gradient-type-btn active" id="gt_linear" onclick="setGradType('linear',this)">→ Линейный</button>
             <button class="gradient-type-btn" id="gt_radial" onclick="setGradType('radial',this)">◎ Радиальный</button>
             <button class="gradient-type-btn" id="gt_conic" onclick="setGradType('conic',this)">🌀 Конический</button>
         </div>
-
         <div id="gradAngleWrap" style="margin:8px 0;">
             <div class="frac-lbl" style="margin-bottom:4px;">Угол: <span id="gradAngleVal" style="color:var(--primary-color);">135°</span></div>
             <input type="range" id="gradAngle" min="0" max="360" value="135" oninput="document.getElementById('gradAngleVal').innerText=this.value+'°'; renderGradient();" style="margin:4px 0;">
         </div>
-
         <div class="gradient-stops" id="gradientStops"></div>
         <button onclick="addGradStop()" style="background:none;border:1.5px dashed var(--border-color);color:var(--text-muted);padding:10px;border-radius:12px;cursor:pointer;font-size:13px;font-weight:700;width:100%;font-family:'Manrope',sans-serif;transition:0.15s;margin-top:4px;" onmouseover="this.style.borderColor='var(--primary-color)';this.style.color='var(--primary-color)'" onmouseout="this.style.borderColor='var(--border-color)';this.style.color='var(--text-muted)'">+ Добавить цвет</button>
-
         <div class="sec-divider"></div>
         <div class="section-label">CSS-код</div>
         <div class="gradient-css-box" id="gradientCSS" onclick="copyGradientCSS()"></div>
         <div class="copy-hint">кликни чтобы скопировать CSS</div>
-
         <div class="sec-divider"></div>
         <div class="section-label">Готовые градиенты</div>
         <div id="gradPresets" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(80px,1fr)); gap:10px; margin-top:8px;"></div>
@@ -1022,7 +1067,6 @@
     <!-- ТАЙМЕР -->
     <div id="timer" class="section card">
         <h2 class="center-title">⏱️ Таймер / Секундомер</h2>
-
         <div class="section-label">Секундомер</div>
         <div class="timer-display" id="swDisplay">00:00.0</div>
         <div class="timer-btns">
@@ -1030,9 +1074,7 @@
             <button class="btn timer-btn-stop" id="swPauseBtn" onclick="swPauseFn()">⏸ Стоп</button>
             <button class="btn timer-btn-reset" onclick="swResetFn()">↺ Сброс</button>
         </div>
-
         <div class="sec-divider"></div>
-
         <div class="section-label">Обратный отсчёт</div>
         <div style="display:flex; gap:10px;">
             <input type="number" id="timerHour" placeholder="Ч" min="0" max="99" style="flex:1; text-align:center;">
@@ -1139,27 +1181,32 @@
         </div>
     </div>
 
+    <!-- МИРОВОЕ ВРЕМЯ (новый инструмент!) -->
+    <div id="worldclock" class="section card">
+        <h2 class="center-title">🌍 Мировое время</h2>
+        <p class="center-sub">Живое время в 16 городах мира · обновляется каждую секунду</p>
+        <div class="wc-grid" id="wcGrid"></div>
+        <div class="sec-divider"></div>
+        <div class="section-label">Разница с твоим временем</div>
+        <div id="wcDiffList" style="display:flex; flex-direction:column; gap:8px; margin-top:10px;"></div>
+    </div>
+
     <!-- КЛИКЕР -->
     <div id="clicker" class="section card" style="text-align:center;">
         <h2 class="center-title">⚡ Кликер Антистресс</h2>
-
-        <!-- Milestone fact popup -->
         <div id="clickFactBox" style="display:none; background:linear-gradient(135deg,rgba(168,85,247,0.15),rgba(255,110,247,0.08)); border:1.5px solid var(--primary-color); border-radius:16px; padding:16px 20px; margin-bottom:16px; animation:slideUp 0.4s cubic-bezier(0.16,1,0.3,1);">
             <div style="font-size:22px; margin-bottom:6px;" id="clickFactEmoji">🎉</div>
             <div style="font-size:13px; font-weight:800; color:var(--primary-color); margin-bottom:6px; font-family:'Unbounded',sans-serif; letter-spacing:-0.3px;" id="clickFactMilestone"></div>
             <div style="font-size:13px; color:var(--text-color); line-height:1.6; font-weight:500;" id="clickFactText"></div>
         </div>
-
         <div style="font-size:64px; margin:16px 0 4px; font-weight:900; color:var(--primary-color); line-height:1; font-family:'Unbounded',sans-serif; transition:transform 0.05s;" id="clickCount">0</div>
         <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:700;" id="clickCps">— кликов/сек</div>
         <div style="font-size:11px; color:var(--text-muted); margin-bottom:18px; font-weight:600;" id="clickNextMilestone"></div>
-
         <button class="btn" id="clickBtn" onclick="clickMore()">ЖМИ! ⚡</button>
         <button class="btn" onclick="resetClicker()" style="background:transparent; border:1.5px solid var(--border-color); color:var(--text-color); margin-top:10px; box-shadow:none;">↺ Сброс</button>
-
-        <!-- Mini achievements bar -->
         <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:18px;" id="clickAchievements"></div>
     </div>
+
     <!-- СПИСОК ЗАДАЧ -->
     <div id="todo" class="section card">
         <h2 class="center-title">✅ Список Задач</h2>
@@ -1185,7 +1232,6 @@
     <div id="bodyinfo" class="section card">
         <h2 class="center-title">💪 Калькулятор тела</h2>
         <p class="center-sub">ИМТ, норма калорий, вес воды и многое другое</p>
-
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
             <div>
                 <div class="frac-lbl" style="margin-bottom:4px;">Пол</div>
@@ -1207,7 +1253,6 @@
                 <input type="number" id="bodyWeight" placeholder="70" min="30" max="300">
             </div>
         </div>
-
         <div class="frac-lbl" style="margin:12px 0 4px;">Активность</div>
         <select id="bodyActivity">
             <option value="1.2">🛋️ Минимальная (сидячая работа)</option>
@@ -1216,9 +1261,7 @@
             <option value="1.725">🏋️ Высокая (6–7 тренировок/нед)</option>
             <option value="1.9">🔥 Экстремальная (спортсмены)</option>
         </select>
-
         <button class="btn" onclick="calcBody()">Рассчитать</button>
-
         <div id="bodyResults" style="display:none; margin-top:18px;">
             <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px;" id="bodyGrid"></div>
             <div id="bodyBmiBar" style="margin-top:16px; background:var(--surface2); border-radius:14px; padding:16px; border:1.5px solid var(--border-color);">
@@ -1237,10 +1280,8 @@
     <div id="loan" class="section card">
         <h2 class="center-title">🏦 Кредитный калькулятор</h2>
         <p class="center-sub">Считай ежемесячный платёж и переплату</p>
-
         <div class="frac-lbl" style="margin-bottom:4px;">Сумма кредита</div>
         <input type="number" id="loanAmount" placeholder="500 000" oninput="calcLoan()">
-
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:4px;">
             <div>
                 <div class="frac-lbl" style="margin-bottom:4px;">Срок (месяцев)</div>
@@ -1251,7 +1292,6 @@
                 <input type="number" id="loanRate" placeholder="15" step="0.1" oninput="calcLoan()">
             </div>
         </div>
-
         <div id="loanResults" style="display:none; margin-top:18px;">
             <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px;" id="loanGrid"></div>
             <div style="margin-top:14px; background:var(--surface2); border-radius:14px; padding:16px; border:1.5px solid var(--border-color);">
@@ -1267,11 +1307,11 @@
             </div>
         </div>
     </div>
+
     <!-- КОНВЕРТЕР ЧИСЛОВЫХ СИСТЕМ -->
     <div id="numconv" class="section card">
         <h2 class="center-title">🔢 Числовые системы</h2>
         <p class="center-sub">DEC ↔ BIN ↔ HEX ↔ OCT — конвертируй мгновенно</p>
-
         <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:8px;">
             <div style="background:rgba(168,85,247,0.06); border:2px solid var(--primary-color); border-radius:12px; padding:4px 12px 12px;">
                 <div class="frac-lbl" style="margin:10px 0 4px; color:var(--primary-color);">DEC — Десятичная</div>
@@ -1290,19 +1330,44 @@
                 <input type="text" id="nc_oct" placeholder="377" oninput="ncFromOct()" style="margin:0; font-size:20px; font-weight:800; font-family:'Courier New',monospace; color:#2ed573;">
             </div>
         </div>
-
         <button class="btn" onclick="ncClear()" style="background:transparent; border:1.5px solid var(--border-color); color:var(--text-color); box-shadow:none; margin-top:4px;">✕ Очистить</button>
-
         <div class="sec-divider"></div>
         <div class="section-label">Таблица ASCII (кликни на символ)</div>
         <div id="asciiTable" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:10px; max-height:200px; overflow-y:auto;"></div>
-
         <div class="sec-divider"></div>
         <div class="section-label">Битовый визуализатор</div>
         <div id="bitVisual" style="display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; justify-content:center;"></div>
     </div>
 
 </main>
+
+<!-- FOOTER — отображается всегда -->
+<footer>
+    <div class="footer-inner">
+        <div class="footer-logo">MiniTools PRO</div>
+        <div class="footer-tools">
+            <button class="footer-tool-link" onclick="openTab('calculator')">🧮 Калькулятор</button>
+            <button class="footer-tool-link" onclick="openTab('units')">📐 Единицы</button>
+            <button class="footer-tool-link" onclick="openTab('currency')">💵 Валюты</button>
+            <button class="footer-tool-link" onclick="openTab('password')">🔑 Пароли</button>
+            <button class="footer-tool-link" onclick="openTab('qrcode')">📱 QR-код</button>
+            <button class="footer-tool-link" onclick="openTab('colorconv')">🎨 Цвета</button>
+            <button class="footer-tool-link" onclick="openTab('timer')">⏱️ Таймер</button>
+            <button class="footer-tool-link" onclick="openTab('notes')">📝 Заметки</button>
+            <button class="footer-tool-link" onclick="openTab('todo')">✅ Задачи</button>
+            <button class="footer-tool-link" onclick="openTab('worldclock')">🌍 Мировое время</button>
+            <button class="footer-tool-link" onclick="openTab('texttools')">✏️ Текст</button>
+            <button class="footer-tool-link" onclick="openTab('birthday')">🎂 Анализ жизни</button>
+            <button class="footer-tool-link" onclick="openTab('cipher')">🕵️ Шифратор</button>
+            <button class="footer-tool-link" onclick="openTab('gradient')">🌈 Градиенты</button>
+            <button class="footer-tool-link" onclick="openTab('loan')">🏦 Кредит</button>
+            <button class="footer-tool-link" onclick="openTab('bodyinfo')">💪 Тело</button>
+            <button class="footer-tool-link" onclick="openTab('numconv')">🔢 Числа</button>
+            <button class="footer-tool-link" onclick="openTab('clicker')">⚡ Кликер</button>
+        </div>
+        <div class="footer-copy">MiniTools PRO v6.1 · Без рекламы · Без регистрации · Всё в браузере</div>
+    </div>
+</footer>
 
 <script>
 /* ======== НАВИГАЦИЯ ======== */
@@ -1313,18 +1378,22 @@ const pageTitles = {
     qrcode:'QR-Генератор', cipher:'Шифратор', clicker:'Кликер',
     texttools:'Текст-Инструменты', timer:'Таймер', units:'Конвертер Единиц',
     colorconv:'Конвертер Цветов', todo:'Список Задач', gradient:'Генератор Градиентов',
-    bodyinfo:'Калькулятор тела', loan:'Кредитный калькулятор', numconv:'Числовые системы'
+    bodyinfo:'Калькулятор тела', loan:'Кредитный калькулятор', numconv:'Числовые системы',
+    worldclock:'Мировое время'
 };
 
 function openTab(id) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
+    const section = document.getElementById(id);
+    if (!section) return;
+    section.classList.add('active');
     const btn = [...document.querySelectorAll('.tab-btn')].find(b => b.getAttribute('onclick') === `openTab('${id}')`);
     if (btn) btn.classList.add('active');
     document.getElementById('pageTitle').innerText = pageTitles[id] || 'MiniTools';
     if (document.getElementById('sidebar').classList.contains('open')) toggleMenu();
-    document.querySelector('main').scrollTo(0, 0);
+    window.scrollTo(0, 0);
+    if (id === 'home') initHome();
 }
 
 function toggleMenu() {
@@ -1385,7 +1454,7 @@ function insertNote(prefix) {
     saveNotes();
 }
 
-/* ======== QR КОД (qrcode.js - работает офлайн, сканируется!) ======== */
+/* ======== QR КОД ======== */
 let qrInstance = null;
 function generateQR() {
     const text = document.getElementById('qrInput').value.trim();
@@ -1393,24 +1462,17 @@ function generateQR() {
     const size = parseInt(document.getElementById('qrSize').value) || 256;
     const colorLight = document.getElementById('qrColorLight').value;
     const colorDark = document.getElementById('qrColorDark').value;
-
     const container = document.getElementById('qrCanvas');
     container.innerHTML = '';
-
     try {
         qrInstance = new QRCode(container, {
-            text: text,
-            width: size,
-            height: size,
-            colorDark: colorDark,
-            colorLight: colorLight,
+            text: text, width: size, height: size,
+            colorDark: colorDark, colorLight: colorLight,
             correctLevel: QRCode.CorrectLevel.H
         });
         document.getElementById('qrDisplay').style.display = 'flex';
         document.getElementById('qrTextPreview').innerText = text.length > 60 ? text.slice(0, 60) + '…' : text;
-    } catch(e) {
-        alert('Ошибка генерации QR: ' + e.message);
-    }
+    } catch(e) { alert('Ошибка генерации QR: ' + e.message); }
 }
 function downloadQR() {
     const canvas = document.querySelector('#qrCanvas canvas');
@@ -1496,13 +1558,12 @@ function caesarCipher(text, shift) {
             return String.fromCharCode(((c.charCodeAt(0) - base + shift) % 26) + base);
         }
         if (/[а-яёА-ЯЁ]/.test(c)) {
-            const ru = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ';
             const isUp = c === c.toUpperCase();
             const lower = c.toLowerCase();
-            const idx = ru.indexOf(lower);
-            if (idx === -1) return c;
             const alphabet = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя';
-            const newChar = alphabet[(idx % 33 + shift) % 33];
+            const idx = alphabet.indexOf(lower);
+            if (idx === -1) return c;
+            const newChar = alphabet[(idx + shift) % 33];
             return isUp ? newChar.toUpperCase() : newChar;
         }
         return c;
@@ -1546,7 +1607,6 @@ function updateCalcDisplay() {
 function clearCalc() { cV = ''; cExpr = ''; cMain.innerText = '0'; cExprEl.innerText = ''; }
 function backspaceCalc() {
     if (cV === 'Ошибка') { clearCalc(); return; }
-    // Remove last multi-char tokens
     if (cV.endsWith('Math.sqrt(')) cV = cV.slice(0, -10);
     else if (cV.endsWith('**2')) cV = cV.slice(0, -3);
     else cV = cV.slice(0, -1);
@@ -1570,7 +1630,6 @@ function calculate() {
         cMain.innerText = 'Ошибка'; cV = '';
     }
 }
-// Keyboard support
 document.addEventListener('keydown', e => {
     if (!document.getElementById('calculator').classList.contains('active')) return;
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
@@ -1593,7 +1652,7 @@ function selectFracOp(op) {
     document.getElementById('fop_'+op).classList.add('selected');
     document.getElementById('fracOpDisplay').innerText = fracSyms[op];
 }
-function gcd(a,b) { return b === 0 ? a : gcd(b, a % b); }
+function gcd(a,b) { return b === 0 ? Math.abs(a) : gcd(b, a % b); }
 function simplify(n,d) {
     if (d === 0) return null;
     const s = ((n<0) !== (d<0)) ? -1 : 1;
@@ -1636,15 +1695,12 @@ function genPass() {
     if (document.getElementById('p_up').checked) ch += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     if (document.getElementById('p_num').checked) ch += '0123456789';
     if (document.getElementById('p_sym').checked) ch += '!@#$%^&*()_+~|}{[]:;?><,./-=';
-    if (!document.getElementById('p_ambig').checked) {
-        ch = ch.replace(/[0O1lI]/g, '');
-    }
+    if (!document.getElementById('p_ambig').checked) ch = ch.replace(/[0O1lI]/g, '');
     if (!ch) { document.getElementById('passRes').innerText = 'Выбери настройки!'; return; }
     const l = parseInt(document.getElementById('passLength').value);
     let r = '';
     for (let i = 0; i < l; i++) r += ch[Math.floor(Math.random() * ch.length)];
     document.getElementById('passRes').innerText = r;
-    // Strength indicator
     let score = 0;
     if (l >= 12) score++; if (l >= 16) score++; if (l >= 20) score++;
     if (/[A-Z]/.test(r)) score++; if (/[0-9]/.test(r)) score++; if (/[^a-zA-Z0-9]/.test(r)) score++;
@@ -1689,7 +1745,7 @@ function calcPercentChange() {
     document.getElementById('pc_res').style.color = change >= 0 ? 'var(--success)' : 'var(--danger)';
 }
 
-/* ======== ДЕНЬ РОЖДЕНИЯ ======== */
+/* ======== ДЕНЬ РОЖДЕНИЯ (FIX: правильная логика зодиака) ======== */
 function calcLife() {
     const val = document.getElementById('bd').value;
     const lifeRes = document.getElementById('lifeResult');
@@ -1709,7 +1765,6 @@ function calcLife() {
     if (nextBD <= now) nextBD.setFullYear(now.getFullYear() + 1);
     const daysToNext = Math.ceil((nextBD - now) / 86400000);
     const isToday = birth.getDate() === now.getDate() && birth.getMonth() === now.getMonth();
-    // Zodiac
     const zodiac = getZodiac(birth.getMonth()+1, birth.getDate());
     document.getElementById('lifeGrid').innerHTML = `
         <div class="life-stat"><div class="life-val">${years}</div><div class="life-lbl">Лет</div></div>
@@ -1722,35 +1777,170 @@ function calcLife() {
     `;
     lifeRes.style.display = 'block';
 }
-function getZodiac(m, d) {
-    const signs = [
-        [1,20,'♑ Козерог'],[2,19,'♒ Водолей'],[3,20,'♓ Рыбы'],[4,20,'♈ Овен'],
-        [5,21,'♉ Телец'],[6,21,'♊ Близнецы'],[7,23,'♋ Рак'],[8,23,'♌ Лев'],
-        [9,23,'♍ Дева'],[10,23,'♎ Весы'],[11,22,'♏ Скорпион'],[12,22,'♐ Стрелец'],[1,19,'♑ Козерог']
-    ];
-    for (let i = 0; i < signs.length - 1; i++) {
-        if (m === signs[i][0] && d >= signs[i][1]) return signs[i+1][2];
-        if (m === signs[i+1][0] && d < signs[i+1][1]) return signs[i+1][2];
-    }
-    return '♑ Козерог';
+
+/* FIX: полностью переписана логика определения знака зодиака */
+function getZodiac(month, day) {
+    if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return '♈ Овен';
+    if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return '♉ Телец';
+    if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) return '♊ Близнецы';
+    if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) return '♋ Рак';
+    if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return '♌ Лев';
+    if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return '♍ Дева';
+    if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) return '♎ Весы';
+    if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) return '♏ Скорпион';
+    if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) return '♐ Стрелец';
+    if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return '♑ Козерог';
+    if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return '♒ Водолей';
+    return '♓ Рыбы';
 }
+
+/* ======== МИРОВОЕ ВРЕМЯ (новый инструмент) ======== */
+const WORLD_CITIES = [
+    { city: 'Москва',        flag: '🇷🇺', tz: 'Europe/Moscow' },
+    { city: 'Киев',          flag: '🇺🇦', tz: 'Europe/Kiev' },
+    { city: 'Минск',         flag: '🇧🇾', tz: 'Europe/Minsk' },
+    { city: 'Астана',        flag: '🇰🇿', tz: 'Asia/Almaty' },
+    { city: 'Лондон',        flag: '🇬🇧', tz: 'Europe/London' },
+    { city: 'Париж',         flag: '🇫🇷', tz: 'Europe/Paris' },
+    { city: 'Берлин',        flag: '🇩🇪', tz: 'Europe/Berlin' },
+    { city: 'Дубай',         flag: '🇦🇪', tz: 'Asia/Dubai' },
+    { city: 'Нью-Йорк',     flag: '🇺🇸', tz: 'America/New_York' },
+    { city: 'Лос-Анджелес', flag: '🇺🇸', tz: 'America/Los_Angeles' },
+    { city: 'Токио',         flag: '🇯🇵', tz: 'Asia/Tokyo' },
+    { city: 'Пекин',         flag: '🇨🇳', tz: 'Asia/Shanghai' },
+    { city: 'Сингапур',      flag: '🇸🇬', tz: 'Asia/Singapore' },
+    { city: 'Сидней',        flag: '🇦🇺', tz: 'Australia/Sydney' },
+    { city: 'Стамбул',       flag: '🇹🇷', tz: 'Europe/Istanbul' },
+    { city: 'Бангкок',       flag: '🇹🇭', tz: 'Asia/Bangkok' },
+];
+
+function getLocalOffset() {
+    return -new Date().getTimezoneOffset(); // minutes
+}
+
+function getTzOffset(tz) {
+    try {
+        const now = new Date();
+        const utcStr = now.toLocaleString('en-US', { timeZone: 'UTC', hour12: false, hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+        const tzStr  = now.toLocaleString('en-US', { timeZone: tz,    hour12: false, hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+        const parse = s => { const [h,m] = s.split(':'); return parseInt(h)*60+parseInt(m); };
+        return parse(tzStr.split(', ')[1].split(' ')[0]) - parse(utcStr.split(', ')[1].split(' ')[0]);
+    } catch(e) { return 0; }
+}
+
+function formatWorldTime(tz) {
+    try {
+        const now = new Date();
+        return now.toLocaleTimeString('ru-RU', { timeZone: tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+    } catch(e) { return '--:--:--'; }
+}
+function formatWorldDate(tz) {
+    try {
+        const now = new Date();
+        return now.toLocaleDateString('ru-RU', { timeZone: tz, day: 'numeric', month: 'short', weekday: 'short' });
+    } catch(e) { return ''; }
+}
+
+let wcInterval = null;
+
+function renderWorldClock() {
+    const grid = document.getElementById('wcGrid');
+    const diffList = document.getElementById('wcDiffList');
+    if (!grid) return;
+
+    // Build cards if not already
+    if (!grid.children.length) {
+        WORLD_CITIES.forEach((c, i) => {
+            const card = document.createElement('div');
+            card.className = 'wc-card';
+            card.id = 'wcCard_' + i;
+            card.innerHTML = `
+                <div class="wc-flag">${c.flag}</div>
+                <div class="wc-city">${c.city}</div>
+                <div class="wc-time" id="wcTime_${i}">--:--:--</div>
+                <div class="wc-date" id="wcDate_${i}"></div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    // Update times
+    const localOffset = getLocalOffset();
+    const diffItems = [];
+
+    WORLD_CITIES.forEach((c, i) => {
+        const timeEl = document.getElementById('wcTime_' + i);
+        const dateEl = document.getElementById('wcDate_' + i);
+        if (timeEl) timeEl.innerText = formatWorldTime(c.tz);
+        if (dateEl) dateEl.innerText = formatWorldDate(c.tz);
+
+        // Calculate diff
+        try {
+            const now = new Date();
+            const tzTime = new Date(now.toLocaleString('en-US', { timeZone: c.tz }));
+            const localTime = new Date(now.toLocaleString('en-US'));
+            const diffMin = Math.round((tzTime - localTime) / 60000);
+            const diffH = diffMin / 60;
+            const sign = diffH >= 0 ? '+' : '';
+            const label = diffH % 1 === 0 ? `${sign}${diffH}ч` : `${sign}${(diffH).toFixed(1)}ч`;
+            diffItems.push({ city: c.city, flag: c.flag, diff: diffMin, label, diffH });
+        } catch(e) {}
+    });
+
+    // Render diff list
+    if (diffList && !diffList.children.length) {
+        const sorted = [...diffItems].sort((a,b) => a.diff - b.diff);
+        sorted.forEach(item => {
+            const color = item.diff === 0 ? 'var(--success)' : item.diff > 0 ? 'var(--primary-color)' : '#ffa502';
+            const div = document.createElement('div');
+            div.style.cssText = 'display:flex; align-items:center; gap:10px; padding:10px 14px; background:var(--surface2); border:1.5px solid var(--border-color); border-radius:10px;';
+            div.innerHTML = `
+                <span style="font-size:18px;">${item.flag}</span>
+                <span style="font-size:13px; font-weight:700; flex:1;">${item.city}</span>
+                <span style="font-size:14px; font-weight:900; color:${color}; font-family:'Unbounded',sans-serif;">${item.diff === 0 ? 'Твоё время' : item.label}</span>
+            `;
+            diffList.appendChild(div);
+        });
+    }
+}
+
+function startWorldClock() {
+    renderWorldClock();
+    if (wcInterval) clearInterval(wcInterval);
+    wcInterval = setInterval(() => {
+        WORLD_CITIES.forEach((c, i) => {
+            const el = document.getElementById('wcTime_' + i);
+            if (el) el.innerText = formatWorldTime(c.tz);
+            const de = document.getElementById('wcDate_' + i);
+            if (de) de.innerText = formatWorldDate(c.tz);
+        });
+    }, 1000);
+}
+
+// Start clock when tab opens
+const _origOpenTab = openTab;
+window.openTab = function(id) {
+    _origOpenTab(id);
+    if (id === 'worldclock') startWorldClock();
+    else if (wcInterval && id !== 'worldclock') { /* keep running for accuracy */ }
+};
 
 /* ======== КЛИКЕР ======== */
 const CLICK_FACTS = [
     { n:10,   emoji:'⚡', title:'10 кликов!',     text:'Средний человек моргает около 15–20 раз в минуту. Ты уже кликнул быстрее!' },
     { n:25,   emoji:'🔥', title:'25 кликов!',     text:'Муравей может поднять груз в 50 раз тяжелее себя. Ты тоже молодец!' },
     { n:50,   emoji:'🌍', title:'50 кликов!',     text:'На Земле больше деревьев, чем звёзд в Млечном Пути — около 3 триллионов!' },
-    { n:100,  emoji:'💯', title:'100 кликов!',    text:'Мёд не портится. Archaeологи находили мёду 3000 лет — и он всё ещё съедобен.' },
+    { n:100,  emoji:'💯', title:'100 кликов!',    text:'Мёд не портится. Археологи находили мёду 3000 лет — и он всё ещё съедобен.' },
     { n:200,  emoji:'🧠', title:'200 кликов!',    text:'Мозг потребляет около 20% всей энергии тела, хотя весит только ~1.5 кг.' },
-    { n:300,  emoji:'🌊', title:'300 кликов!',    text:'Осьминоги имеют три сердца и голубую кровь. Вот это по-настоящему крово!' },
+    { n:300,  emoji:'🌊', title:'300 кликов!',    text:'Осьминоги имеют три сердца и голубую кровь. Вот это по-настоящему кровно!' },
     { n:500,  emoji:'🚀', title:'500 кликов! 🔥',  text:'Свет от Солнца до Земли летит ~8 минут. Твои клики распространяются быстрее!' },
     { n:750,  emoji:'🌌', title:'750 кликов!',    text:'В наблюдаемой Вселенной больше галактик, чем песчинок на всех пляжах Земли.' },
     { n:1000, emoji:'💎', title:'1000 кликов! ЛЕГЕНДА!', text:'Если сложить все ДНК из клеток твоего тела — получится нить длиной ~68 млрд км. Это 450 раз до Плутона!' },
     { n:1500, emoji:'🏆', title:'1500 кликов!',   text:'Акулы существуют дольше, чем деревья. Акулам ~450 млн лет, деревьям ~350 млн.' },
-    { n:2000, emoji:'👑', title:'2000 кликов! БОГ КЛИКОВ!', text:'Человеческое тело производит 25 миллионов новых клеток каждую секунду. Ты нажимал на кнопку всё это время.' },
+    { n:2000, emoji:'👑', title:'2000 кликов! БОГ КЛИКОВ!', text:'Человеческое тело производит 25 миллионов новых клеток каждую секунду. Ты нажимал кнопку всё это время.' },
     { n:3000, emoji:'🌠', title:'3000 кликов!',   text:'Клеопатра жила ближе к запуску iPhone, чем к строительству пирамид. История — это странно.' },
     { n:5000, emoji:'🎆', title:'5000 кликов! КОСМОС!', text:'Если бы ты кликал со скоростью света — ты мог бы обогнуть Землю 7.5 раз за 1 секунду. Почти там!' },
-    { n:10000,emoji:'🌋', title:'10 000 кликов!!! АБСОЛЮТ!', text:'Ты потратил немало времени на это. Знай: даже осьминоги играют. Исследователи наблюдали, как они катали таблетки туда-обратно просто ради удовольствия. Ты такой же 🐙' },
+    { n:10000,emoji:'🌋', title:'10 000 кликов!!! АБСОЛЮТ!', text:'Ты потратил немало времени на это. Знай: даже осьминоги играют. Они катали таблетки ради удовольствия. Ты такой же 🐙' },
 ];
 
 const CLICK_ACHIEVEMENTS = [
@@ -1765,15 +1955,12 @@ const CLICK_ACHIEVEMENTS = [
 
 let clickVal = parseInt(localStorage.getItem('miniClick')||'0');
 let clickTimes = [];
-let lastShownFact = -1;
 
 function updateClickUI() {
     document.getElementById('clickCount').innerText = clickVal.toLocaleString('ru-RU');
-    // Next milestone
     const next = CLICK_FACTS.find(f => f.n > clickVal);
     const nm = document.getElementById('clickNextMilestone');
     if (nm) nm.innerText = next ? `До следующего факта: ${next.n - clickVal} кликов` : '🎆 Ты достиг всех вех!';
-    // Achievements
     renderClickAchievements();
 }
 
@@ -1797,7 +1984,7 @@ function showClickFact(fact) {
     document.getElementById('clickFactText').innerText = fact.text;
     box.style.display = 'block';
     box.style.animation = 'none';
-    box.offsetHeight; // reflow
+    box.offsetHeight;
     box.style.animation = 'slideUp 0.4s cubic-bezier(0.16,1,0.3,1)';
     if (navigator.vibrate) navigator.vibrate([80, 40, 120]);
 }
@@ -1805,22 +1992,15 @@ function showClickFact(fact) {
 function clickMore() {
     clickVal++;
     localStorage.setItem('miniClick', clickVal);
-
-    // Bounce animation on count
     const cnt = document.getElementById('clickCount');
     cnt.style.transform = 'scale(1.18)';
     setTimeout(() => cnt.style.transform = 'scale(1)', 80);
-
-    // CPS
     const now = Date.now();
     clickTimes.push(now);
     clickTimes = clickTimes.filter(t => now - t < 1000);
     document.getElementById('clickCps').innerText = clickTimes.length + ' кликов/сек';
-
-    // Check milestones
     const fact = CLICK_FACTS.find(f => f.n === clickVal);
     if (fact) showClickFact(fact);
-
     updateClickUI();
 }
 
@@ -1848,14 +2028,8 @@ function ttOp(op) {
     else if (op === 'title') box.innerText = text.split(' ').map(w => w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' ');
     else if (op === 'reverse') box.innerText = text.split('').reverse().join('');
     else if (op === 'trim') box.innerText = text.replace(/\s+/g,' ').trim();
-    else if (op === 'removeDups') {
-        const lines = text.split('\n');
-        box.innerText = [...new Set(lines)].join('\n');
-    }
-    else if (op === 'sort') {
-        const lines = text.split('\n');
-        box.innerText = lines.sort((a,b) => a.localeCompare(b, 'ru')).join('\n');
-    }
+    else if (op === 'removeDups') box.innerText = [...new Set(text.split('\n'))].join('\n');
+    else if (op === 'sort') box.innerText = text.split('\n').sort((a,b) => a.localeCompare(b, 'ru')).join('\n');
     else if (op === 'count') {
         const c = text.length, w = text.trim()===''?0:text.trim().split(/\s+/).length, ln = text.split('\n').length;
         const sentences = text.split(/[.!?]+/).filter(Boolean).length;
@@ -1867,13 +2041,12 @@ function ttOp(op) {
 let swElapsed=0, swRunning=false, swInterval, swStartTimestamp=0;
 function swUpdateBtns() {
     const start = document.getElementById('swStartBtn');
-    const pause = document.getElementById('swPauseBtn');
     if (swRunning) {
         start.className = 'btn timer-btn-stop'; start.innerText = '⏸ Пауза'; start.onclick = swPauseFn;
-        pause.style.display = 'none';
+        document.getElementById('swPauseBtn').style.display = 'none';
     } else {
         start.className = 'btn timer-btn-run'; start.innerText = '▶ Старт'; start.onclick = swStartFn;
-        pause.style.display = '';
+        document.getElementById('swPauseBtn').style.display = '';
     }
 }
 function swStartFn() {
@@ -1887,26 +2060,23 @@ function swStartFn() {
     }, 80);
     swUpdateBtns();
 }
-function swPauseFn() {
-    swRunning = false; clearInterval(swInterval); swUpdateBtns();
-}
+function swPauseFn() { swRunning = false; clearInterval(swInterval); swUpdateBtns(); }
 function swResetFn() {
     swRunning = false; swElapsed = 0; clearInterval(swInterval);
     document.getElementById('swDisplay').innerText = '00:00.0';
     swUpdateBtns();
 }
 
-/* ======== ТАЙМЕР (с часами!) ======== */
+/* ======== ТАЙМЕР ======== */
 let timerLeft=0, timerRunning=false, timerInt;
 function timerUpdateBtns() {
     const start = document.getElementById('timerStartBtn');
-    const pause = document.getElementById('timerPauseBtn');
     if (timerRunning) {
         start.className = 'btn timer-btn-stop'; start.innerText = '⏸ Пауза'; start.onclick = timerPauseFn;
-        pause.style.display = 'none';
+        document.getElementById('timerPauseBtn').style.display = 'none';
     } else {
         start.className = 'btn timer-btn-run'; start.innerText = '▶ Старт'; start.onclick = timerStartFn;
-        pause.style.display = '';
+        document.getElementById('timerPauseBtn').style.display = '';
     }
 }
 function setTimer(h,m,s) {
@@ -1940,16 +2110,13 @@ function timerStartFn() {
         if (timerLeft <= 0) {
             timerRunning = false; clearInterval(timerInt);
             const d = document.getElementById('timerDisplay');
-            d.innerText = '⏰ ВРЕМЯ!';
-            d.style.color = 'var(--danger)';
+            d.innerText = '⏰ ВРЕМЯ!'; d.style.color = 'var(--danger)';
             timerUpdateBtns();
             if (navigator.vibrate) navigator.vibrate([300,100,300,100,500]);
         }
     }, 1000);
 }
-function timerPauseFn() {
-    timerRunning = false; clearInterval(timerInt); timerUpdateBtns();
-}
+function timerPauseFn() { timerRunning = false; clearInterval(timerInt); timerUpdateBtns(); }
 function timerResetFn() {
     timerRunning = false; timerLeft = 0; clearInterval(timerInt);
     document.getElementById('timerDisplay').innerText = '00:00:00';
@@ -1959,66 +2126,14 @@ function timerResetFn() {
 
 /* ======== КОНВЕРТЕР ЕДИНИЦ ======== */
 const unitData = {
-    length: {
-        label: 'Длина',
-        units: {
-            'мм': 0.001, 'см': 0.01, 'дм': 0.1, 'м': 1, 'км': 1000,
-            'дюйм': 0.0254, 'фут': 0.3048, 'ярд': 0.9144, 'миля': 1609.344,
-            'морская миля': 1852, 'световой год': 9.461e15
-        }
-    },
-    weight: {
-        label: 'Масса',
-        units: {
-            'мг': 0.000001, 'г': 0.001, 'кг': 1, 'т': 1000,
-            'унция': 0.028349523, 'фунт': 0.45359237, 'стоун': 6.35029318,
-            'карат': 0.0002, 'центнер': 100
-        }
-    },
-    temp: {
-        label: 'Температура',
-        units: { '°C': 'C', '°F': 'F', 'K': 'K', '°R': 'R' }
-    },
-    volume: {
-        label: 'Объём',
-        units: {
-            'мл': 0.001, 'л': 1, 'м³': 1000, 'см³': 0.001,
-            'чашка (US)': 0.236588, 'пинта (US)': 0.473176, 'кварта (US)': 0.946353,
-            'галлон (US)': 3.785411, 'ст. ложка': 0.014787, 'ч. ложка': 0.004929,
-            'баррель нефти': 158.987
-        }
-    },
-    area: {
-        label: 'Площадь',
-        units: {
-            'мм²': 0.000001, 'см²': 0.0001, 'м²': 1, 'км²': 1000000,
-            'га': 10000, 'сотка': 100, 'акр': 4046.856,
-            'фут²': 0.092903, 'дюйм²': 0.000645, 'ярд²': 0.836127
-        }
-    },
-    speed: {
-        label: 'Скорость',
-        units: {
-            'м/с': 1, 'км/ч': 0.277778, 'миль/ч': 0.44704,
-            'узел': 0.514444, 'фут/с': 0.3048, 'скорость звука': 343,
-            'скорость света': 299792458
-        }
-    },
-    time: {
-        label: 'Время',
-        units: {
-            'нс': 1e-9, 'мкс': 1e-6, 'мс': 0.001, 'с': 1,
-            'мин': 60, 'ч': 3600, 'д': 86400, 'нед': 604800,
-            'мес (30д)': 2592000, 'год': 31536000, 'век': 3153600000
-        }
-    },
-    digital: {
-        label: 'Данные',
-        units: {
-            'бит': 1, 'байт': 8, 'КБ': 8192, 'МБ': 8388608,
-            'ГБ': 8589934592, 'ТБ': 8796093022208, 'ПБ': 9007199254740992
-        }
-    }
+    length: { label:'Длина', units:{ 'мм':0.001,'см':0.01,'дм':0.1,'м':1,'км':1000,'дюйм':0.0254,'фут':0.3048,'ярд':0.9144,'миля':1609.344,'морская миля':1852 } },
+    weight: { label:'Масса', units:{ 'мг':0.000001,'г':0.001,'кг':1,'т':1000,'унция':0.028349523,'фунт':0.45359237,'стоун':6.35029318,'карат':0.0002,'центнер':100 } },
+    temp:   { label:'Температура', units:{ '°C':'C','°F':'F','K':'K','°R':'R' } },
+    volume: { label:'Объём', units:{ 'мл':0.001,'л':1,'м³':1000,'см³':0.001,'чашка (US)':0.236588,'пинта (US)':0.473176,'кварта (US)':0.946353,'галлон (US)':3.785411,'ст. ложка':0.014787,'ч. ложка':0.004929,'баррель нефти':158.987 } },
+    area:   { label:'Площадь', units:{ 'мм²':0.000001,'см²':0.0001,'м²':1,'км²':1000000,'га':10000,'сотка':100,'акр':4046.856,'фут²':0.092903,'дюйм²':0.000645,'ярд²':0.836127 } },
+    speed:  { label:'Скорость', units:{ 'м/с':1,'км/ч':0.277778,'миль/ч':0.44704,'узел':0.514444,'фут/с':0.3048,'скорость звука':343,'скорость света':299792458 } },
+    time:   { label:'Время', units:{ 'нс':1e-9,'мкс':1e-6,'мс':0.001,'с':1,'мин':60,'ч':3600,'д':86400,'нед':604800,'мес (30д)':2592000,'год':31536000,'век':3153600000 } },
+    digital:{ label:'Данные', units:{ 'бит':1,'байт':8,'КБ':8192,'МБ':8388608,'ГБ':8589934592,'ТБ':8796093022208 } }
 };
 
 let curUnitCat = 'length';
@@ -2033,7 +2148,6 @@ function setUnitCat(cat, el) {
     const toSel = document.getElementById('unitTo');
     fromSel.innerHTML = keys.map(k => `<option value="${k}">${k}</option>`).join('');
     toSel.innerHTML = keys.map(k => `<option value="${k}">${k}</option>`).join('');
-    // Default sensible selections
     if (keys.length > 1) toSel.selectedIndex = Math.min(3, keys.length-1);
     document.getElementById('unitVal').value = '';
     document.getElementById('unitResult').value = '';
@@ -2046,16 +2160,12 @@ function convertUnit() {
     const from = document.getElementById('unitFrom').value;
     const to = document.getElementById('unitTo').value;
     const data = unitData[curUnitCat];
-
     let result;
     if (curUnitCat === 'temp') {
         result = convertTemp(val, data.units[from], data.units[to]);
     } else {
-        const fromFactor = data.units[from];
-        const toFactor = data.units[to];
-        result = val * fromFactor / toFactor;
+        result = val * data.units[from] / data.units[to];
     }
-
     const formatted = formatNumber(result);
     document.getElementById('unitResult').value = formatted;
     const box = document.getElementById('unitResultBox');
@@ -2064,25 +2174,23 @@ function convertUnit() {
 }
 
 function convertTemp(val, from, to) {
-    // Convert to Celsius first
-    let celsius;
-    if (from === 'C') celsius = val;
-    else if (from === 'F') celsius = (val - 32) * 5/9;
-    else if (from === 'K') celsius = val - 273.15;
-    else if (from === 'R') celsius = (val - 491.67) * 5/9;
-    // From Celsius to target
-    if (to === 'C') return celsius;
-    if (to === 'F') return celsius * 9/5 + 32;
-    if (to === 'K') return celsius + 273.15;
-    if (to === 'R') return (celsius + 273.15) * 9/5;
-    return celsius;
+    let c;
+    if (from==='C') c=val;
+    else if (from==='F') c=(val-32)*5/9;
+    else if (from==='K') c=val-273.15;
+    else if (from==='R') c=(val-491.67)*5/9;
+    if (to==='C') return c;
+    if (to==='F') return c*9/5+32;
+    if (to==='K') return c+273.15;
+    if (to==='R') return (c+273.15)*9/5;
+    return c;
 }
 
 function formatNumber(n) {
+    if (!isFinite(n)) return '∞';
     if (Math.abs(n) < 0.0001 || Math.abs(n) > 1e12) return n.toExponential(6);
     const decimals = Math.abs(n) < 1 ? 8 : Math.abs(n) < 100 ? 6 : 4;
-    const str = parseFloat(n.toFixed(decimals)).toString();
-    return str;
+    return parseFloat(n.toFixed(decimals)).toString();
 }
 
 function swapUnits() {
@@ -2090,7 +2198,6 @@ function swapUnits() {
     const t = document.getElementById('unitTo');
     const fv = f.value, tv = t.value;
     f.value = tv; t.value = fv;
-    // Swap values too
     const rv = document.getElementById('unitResult').value;
     const iv = document.getElementById('unitVal').value;
     document.getElementById('unitVal').value = rv;
@@ -2098,14 +2205,12 @@ function swapUnits() {
     convertUnit();
 }
 
-// Init units
 (function() {
     setUnitCat('length');
     document.querySelector('.unit-tab').classList.add('active');
 })();
 
-/* ======== КОНВЕРТЕР ЦВЕТОВ — ПРОФЕССИОНАЛЬНЫЙ ПИКЕР ======== */
-// State: HSV + alpha
+/* ======== КОНВЕРТЕР ЦВЕТОВ ======== */
 let cpH = 276, cpS = 65.6, cpV = 96.9, cpA = 100;
 
 const PRESETS = [
@@ -2141,7 +2246,7 @@ function hexToRgb(hex) {
     return {r:parseInt(c.slice(0,2),16),g:parseInt(c.slice(2,4),16),b:parseInt(c.slice(4,6),16)};
 }
 function rgbToHex(r,g,b) {
-    return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
+    return '#'+[r,g,b].map(x=>Math.max(0,Math.min(255,x)).toString(16).padStart(2,'0')).join('');
 }
 function rgbToHsl(r,g,b) {
     r/=255;g/=255;b/=255;
@@ -2160,42 +2265,26 @@ function cpUpdateUI() {
     const hex = rgbToHex(r,g,b);
     const hsl = rgbToHsl(r,g,b);
     const alpha = cpA/100;
-
-    // Stage background (pure hue)
     const stage = document.getElementById('colorStage');
     if(stage) stage.style.background = `hsl(${cpH},100%,50%)`;
-
-    // Cursor position in stage (S=x, 1-V=y)
     const cursor = document.getElementById('stageCursor');
     if(cursor){ cursor.style.left=cpS+'%'; cursor.style.top=(100-cpV)+'%'; }
-
-    // Hue thumb
     const hueThumb = document.getElementById('hueThumb');
     if(hueThumb){ hueThumb.style.left=(cpH/360*100)+'%'; hueThumb.style.background=`hsl(${cpH},100%,50%)`; }
-
-    // Alpha bar + thumb
     const alphaBg = document.getElementById('alphaBarInner');
     if(alphaBg) alphaBg.style.background=`linear-gradient(to right, transparent, ${hex})`;
     const alphaThumb = document.getElementById('alphaThumb');
     if(alphaThumb) alphaThumb.style.left=cpA+'%';
-
-    // Swatch
     const swatch = document.getElementById('colorSwatchFill');
     if(swatch) swatch.style.background = alpha<1 ? `rgba(${r},${g},${b},${alpha})` : hex;
-
-    // HEX input (only update if not focused)
     const hexIn = document.getElementById('colorHexIn');
     if(hexIn && document.activeElement!==hexIn) hexIn.value = hex.toUpperCase();
-
-    // Values
     const cvHex = document.getElementById('cvHex');
     const cvRgb = document.getElementById('cvRgb');
     const cvHsl = document.getElementById('cvHsl');
     if(cvHex) cvHex.innerText = alpha<1 ? `${hex} / ${Math.round(alpha*100)}%` : hex.toLowerCase();
     if(cvRgb) cvRgb.innerText = alpha<1 ? `${r}, ${g}, ${b}, ${alpha.toFixed(2)}` : `${r}, ${g}, ${b}`;
     if(cvHsl) cvHsl.innerText = `${hsl.h}°, ${hsl.s}%, ${hsl.l}%`;
-
-    // Shades strip
     renderShades(cpH, hsl.s);
 }
 
@@ -2208,7 +2297,6 @@ function renderShades(h, s) {
         const div = document.createElement('div');
         div.className = 'color-shade-chip';
         div.style.background = `hsl(${h},${s}%,${l}%)`;
-        div.title = `hsl(${h},${s}%,${l}%)`;
         div.onclick = () => {
             const c=hslToHex(h,s,l);
             const rgb=hexToRgb(c);
@@ -2225,7 +2313,6 @@ function hslToHex(h,s,l){
     return `#${f(0)}${f(8)}${f(4)}`;
 }
 
-// Stage drag
 function initStage(){
     const stage = document.getElementById('colorStage');
     if(!stage) return;
@@ -2246,14 +2333,8 @@ function initStage(){
     document.addEventListener('touchend',()=>dragging=false);
 }
 
-function onHueChange(){
-    cpH=parseInt(document.getElementById('hueRange').value);
-    cpUpdateUI();
-}
-function onAlphaChange(){
-    cpA=parseInt(document.getElementById('alphaRange').value);
-    cpUpdateUI();
-}
+function onHueChange(){ cpH=parseInt(document.getElementById('hueRange').value); cpUpdateUI(); }
+function onAlphaChange(){ cpA=parseInt(document.getElementById('alphaRange').value); cpUpdateUI(); }
 function colorFromHex(){
     const hex=document.getElementById('colorHexIn').value.trim();
     const full = hex.startsWith('#')?hex:'#'+hex;
@@ -2271,9 +2352,7 @@ function initPresets(){
     if(!el)return;
     PRESETS.forEach(c=>{
         const d=document.createElement('div');
-        d.className='color-preset';
-        d.style.background=c;
-        d.title=c;
+        d.className='color-preset'; d.style.background=c; d.title=c;
         d.onclick=()=>{
             const rgb=hexToRgb(c);
             if(rgb){const hsv=rgbToHsv(rgb.r,rgb.g,rgb.b);cpH=hsv.h;cpS=hsv.s;cpV=hsv.v;document.getElementById('hueRange').value=cpH;cpUpdateUI();}
@@ -2282,10 +2361,7 @@ function initPresets(){
     });
 }
 
-// Init color picker
-initStage();
-initPresets();
-cpUpdateUI();
+initStage(); initPresets(); cpUpdateUI();
 
 /* ======== ГЕНЕРАТОР ГРАДИЕНТОВ ======== */
 let gradType='linear';
@@ -2339,11 +2415,10 @@ function renderGradient(){
     if(gradType==='linear') css=`linear-gradient(${angle}deg, ${stops})`;
     else if(gradType==='radial') css=`radial-gradient(circle, ${stops})`;
     else css=`conic-gradient(from 0deg, ${stops})`;
-
     const prev=document.getElementById('gradientPreview');
     const cssBox=document.getElementById('gradientCSS');
     if(prev) prev.style.background=css;
-    if(cssBox){ cssBox.innerText=`background: ${css};`; }
+    if(cssBox) cssBox.innerText=`background: ${css};`;
 }
 
 function addGradStop(){
@@ -2351,20 +2426,13 @@ function addGradStop(){
     gradStops.push({color:'#'+Math.floor(Math.random()*0xffffff).toString(16).padStart(6,'0'),pos:Math.max(0,Math.min(100,midPos))});
     renderGradient();
 }
-function removeGradStop(i){
-    gradStops.splice(i,1);
-    renderGradient();
-}
+function removeGradStop(i){ gradStops.splice(i,1); renderGradient(); }
 function copyGradientCSS(){
     const box=document.getElementById('gradientCSS');
     if(!box)return;
     navigator.clipboard.writeText(box.innerText).catch(()=>{});
     const prev=document.getElementById('gradientPreview');
-    if(prev){
-        const old=prev.style.transition;
-        prev.style.outline='2px solid var(--primary-color)';
-        setTimeout(()=>prev.style.outline='',1200);
-    }
+    if(prev) { prev.style.outline='2px solid var(--primary-color)'; setTimeout(()=>prev.style.outline='',1200); }
     const orig=box.innerText;
     box.innerText='✅ Скопировано!';
     setTimeout(()=>box.innerText=orig,1400);
@@ -2392,8 +2460,7 @@ function initGradPresets(){
     });
 }
 
-initGradPresets();
-renderGradient();
+initGradPresets(); renderGradient();
 
 /* ======== СПИСОК ЗАДАЧ ======== */
 let todos = JSON.parse(localStorage.getItem('miniTodos') || '[]');
@@ -2418,14 +2485,12 @@ function toggleTodo(id) {
 
 function deleteTodo(id) {
     todos = todos.filter(t => t.id !== id);
-    saveTodos();
-    renderTodos();
+    saveTodos(); renderTodos();
 }
 
 function clearDoneTodos() {
     todos = todos.filter(t => !t.done);
-    saveTodos();
-    renderTodos();
+    saveTodos(); renderTodos();
 }
 
 function setTodoFilter(f, el) {
@@ -2444,21 +2509,17 @@ function renderTodos() {
         return true;
     });
     list.innerHTML = '';
-    if (filtered.length === 0) {
-        empty.style.display = 'block';
-    } else {
-        empty.style.display = 'none';
-        filtered.forEach(t => {
-            const div = document.createElement('div');
-            div.className = 'todo-item' + (t.done ? ' done' : '');
-            div.innerHTML = `
-                <div class="todo-check ${t.done ? 'checked' : ''}" onclick="toggleTodo(${t.id})">${t.done ? '✓' : ''}</div>
-                <div class="todo-text" onclick="toggleTodo(${t.id})">${escapeHtml(t.text)}</div>
-                <button class="todo-del" onclick="deleteTodo(${t.id})">✕</button>
-            `;
-            list.appendChild(div);
-        });
-    }
+    empty.style.display = filtered.length === 0 ? 'block' : 'none';
+    filtered.forEach(t => {
+        const div = document.createElement('div');
+        div.className = 'todo-item' + (t.done ? ' done' : '');
+        div.innerHTML = `
+            <div class="todo-check ${t.done ? 'checked' : ''}" onclick="toggleTodo(${t.id})">${t.done ? '✓' : ''}</div>
+            <div class="todo-text" onclick="toggleTodo(${t.id})">${escapeHtml(t.text)}</div>
+            <button class="todo-del" onclick="deleteTodo(${t.id})">✕</button>
+        `;
+        list.appendChild(div);
+    });
     const done = todos.filter(t => t.done).length;
     document.getElementById('todoStats').innerText = `${done} из ${todos.length} выполнено`;
 }
@@ -2476,120 +2537,82 @@ function calcBody() {
     const height = parseFloat(document.getElementById('bodyHeight').value);
     const weight = parseFloat(document.getElementById('bodyWeight').value);
     const activity = parseFloat(document.getElementById('bodyActivity').value);
-
     if ([age,height,weight].some(isNaN) || age<1 || height<50 || weight<10) {
-        document.getElementById('bodyResults').style.display = 'none';
-        return;
+        document.getElementById('bodyResults').style.display = 'none'; return;
     }
-
-    // BMI
     const bmi = weight / ((height/100) ** 2);
-    let bmiLabel = '', bmiColor = '';
-    if      (bmi < 18.5) { bmiLabel='Дефицит веса'; bmiColor='#2ed573'; }
-    else if (bmi < 25)   { bmiLabel='Нормальный вес'; bmiColor='#2ed573'; }
-    else if (bmi < 30)   { bmiLabel='Избыточный вес'; bmiColor='#ffa502'; }
-    else                  { bmiLabel='Ожирение'; bmiColor='#ff4757'; }
-
-    // BMR (Mifflin–St Jeor)
-    const bmr = gender==='m'
-        ? 10*weight + 6.25*height - 5*age + 5
-        : 10*weight + 6.25*height - 5*age - 161;
-
+    let bmiLabel='', bmiColor='';
+    if(bmi<18.5){bmiLabel='Дефицит веса';bmiColor='#2ed573';}
+    else if(bmi<25){bmiLabel='Нормальный вес';bmiColor='#2ed573';}
+    else if(bmi<30){bmiLabel='Избыточный вес';bmiColor='#ffa502';}
+    else{bmiLabel='Ожирение';bmiColor='#ff4757';}
+    const bmr = gender==='m' ? 10*weight+6.25*height-5*age+5 : 10*weight+6.25*height-5*age-161;
     const tdee = Math.round(bmr * activity);
-
-    // Ideal weight (Broca)
-    const idealWeight = gender==='m' ? height - 100 : height - 110;
-
-    // Water norm (ml)
+    const idealWeight = gender==='m' ? height-100 : height-110;
     const water = Math.round(weight * 30);
-
-    // Body fat % estimate (US Navy approximation via BMI)
-    const fatM = (1.20 * bmi) + (0.23 * age) - 16.2;
-    const fatF = (1.20 * bmi) + (0.23 * age) - 5.4;
-    const fat  = Math.max(3, Math.round(gender==='m' ? fatM : fatF));
-
+    const fatM = (1.20*bmi)+(0.23*age)-16.2;
+    const fatF = (1.20*bmi)+(0.23*age)-5.4;
+    const fat = Math.max(3, Math.round(gender==='m' ? fatM : fatF));
     const stats = [
-        { label:'ИМТ', val: bmi.toFixed(1), sub: bmiLabel, color: bmiColor },
-        { label:'Норма калорий/день', val: tdee + ' ккал', sub: 'для поддержания веса', color: 'var(--primary-color)' },
-        { label:'Норма воды/день', val: (water/1000).toFixed(1) + ' л', sub: weight+'кг × 30мл', color: '#1e90ff' },
-        { label:'Идеальный вес', val: idealWeight + ' кг', sub: 'формула Брока', color: '#2ed573' },
-        { label:'Жировая масса (оценка)', val: fat + '%', sub: gender==='m'?'норма 10–20%':'норма 18–28%', color: '#ffa502' },
-        { label:'Базовый обмен', val: Math.round(bmr) + ' ккал', sub: 'в состоянии покоя', color: '#ff6ef7' },
+        {label:'ИМТ',val:bmi.toFixed(1),sub:bmiLabel,color:bmiColor},
+        {label:'Норма калорий/день',val:tdee+' ккал',sub:'для поддержания веса',color:'var(--primary-color)'},
+        {label:'Норма воды/день',val:(water/1000).toFixed(1)+' л',sub:weight+'кг × 30мл',color:'#1e90ff'},
+        {label:'Идеальный вес',val:idealWeight+' кг',sub:'формула Брока',color:'#2ed573'},
+        {label:'Жировая масса (оценка)',val:fat+'%',sub:gender==='m'?'норма 10–20%':'норма 18–28%',color:'#ffa502'},
+        {label:'Базовый обмен',val:Math.round(bmr)+' ккал',sub:'в состоянии покоя',color:'#ff6ef7'},
     ];
-
-    const grid = document.getElementById('bodyGrid');
-    grid.innerHTML = stats.map(s => `
+    document.getElementById('bodyGrid').innerHTML = stats.map(s=>`
         <div style="background:var(--surface2);border:1.5px solid var(--border-color);border-radius:14px;padding:16px;text-align:center;">
             <div style="font-size:22px;font-weight:900;color:${s.color};font-family:'Unbounded',sans-serif;">${s.val}</div>
             <div style="font-size:10px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin:5px 0 3px;font-family:'Unbounded',sans-serif;">${s.label}</div>
             <div style="font-size:10px;color:var(--text-muted);">${s.sub}</div>
-        </div>
-    `).join('');
-
-    // BMI bar marker (scale 15–40)
-    const pct = Math.max(0, Math.min(100, (bmi - 15) / 25 * 100));
-    document.getElementById('bodyBmiMarker').style.left = pct + '%';
-
+        </div>`).join('');
+    const pct = Math.max(0, Math.min(100, (bmi-15)/25*100));
+    document.getElementById('bodyBmiMarker').style.left = pct+'%';
     document.getElementById('bodyResults').style.display = 'block';
 }
 
 /* ======== КРЕДИТНЫЙ КАЛЬКУЛЯТОР ======== */
 function calcLoan() {
-    const amount  = parseFloat(document.getElementById('loanAmount').value);
-    const months  = parseInt(document.getElementById('loanMonths').value);
-    const rateYear= parseFloat(document.getElementById('loanRate').value);
-
+    const amount   = parseFloat(document.getElementById('loanAmount').value);
+    const months   = parseInt(document.getElementById('loanMonths').value);
+    const rateYear = parseFloat(document.getElementById('loanRate').value);
     if ([amount,months,rateYear].some(isNaN) || amount<=0 || months<=0 || rateYear<0) {
-        document.getElementById('loanResults').style.display = 'none';
-        return;
+        document.getElementById('loanResults').style.display='none'; return;
     }
-
-    const r = rateYear / 100 / 12; // monthly rate
-    let monthlyPayment;
-    if (r === 0) {
-        monthlyPayment = amount / months;
-    } else {
-        monthlyPayment = amount * r * Math.pow(1+r, months) / (Math.pow(1+r, months) - 1);
-    }
-    const totalPay    = monthlyPayment * months;
-    const overpay     = totalPay - amount;
-    const overpayPct  = (overpay / amount * 100).toFixed(1);
-    const bodyPct     = Math.round(amount / totalPay * 100);
-    const intPct      = 100 - bodyPct;
-
+    const r = rateYear/100/12;
+    const monthlyPayment = r===0 ? amount/months : amount*r*Math.pow(1+r,months)/(Math.pow(1+r,months)-1);
+    const totalPay    = monthlyPayment*months;
+    const overpay     = totalPay-amount;
+    const overpayPct  = (overpay/amount*100).toFixed(1);
+    const bodyPct     = Math.round(amount/totalPay*100);
+    const intPct      = 100-bodyPct;
     const fmt = n => Math.round(n).toLocaleString('ru-RU');
-
-    const stats = [
-        { label:'Ежемесячный платёж', val: fmt(monthlyPayment) + ' ₽', color:'var(--primary-color)' },
-        { label:'Общая сумма выплат',  val: fmt(totalPay) + ' ₽',      color:'#ffa502' },
-        { label:'Переплата',           val: fmt(overpay) + ' ₽',        color:'#ff4757' },
-        { label:'Переплата в %',       val: overpayPct + '%',            color:'#ff4757' },
+    const stats=[
+        {label:'Ежемесячный платёж',val:fmt(monthlyPayment)+' ₽',color:'var(--primary-color)'},
+        {label:'Общая сумма выплат', val:fmt(totalPay)+' ₽',      color:'#ffa502'},
+        {label:'Переплата',          val:fmt(overpay)+' ₽',        color:'#ff4757'},
+        {label:'Переплата в %',      val:overpayPct+'%',            color:'#ff4757'},
     ];
-
-    document.getElementById('loanGrid').innerHTML = stats.map(s => `
+    document.getElementById('loanGrid').innerHTML = stats.map(s=>`
         <div style="background:var(--surface2);border:1.5px solid var(--border-color);border-radius:14px;padding:16px;text-align:center;">
             <div style="font-size:20px;font-weight:900;color:${s.color};font-family:'Unbounded',sans-serif;">${s.val}</div>
             <div style="font-size:10px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-top:6px;font-family:'Unbounded',sans-serif;">${s.label}</div>
-        </div>
-    `).join('');
-
-    const bb = document.getElementById('loanBodyBar');
-    const ib = document.getElementById('loanInterestBar');
-    bb.style.width = bodyPct + '%';
-    ib.style.width = intPct + '%';
-    bb.innerText = bodyPct > 15 ? bodyPct+'%' : '';
-    ib.innerText = intPct > 15 ? intPct+'%' : '';
-
+        </div>`).join('');
+    document.getElementById('loanBodyBar').style.width = bodyPct+'%';
+    document.getElementById('loanInterestBar').style.width = intPct+'%';
+    document.getElementById('loanBodyBar').innerText = bodyPct>15?bodyPct+'%':'';
+    document.getElementById('loanInterestBar').innerText = intPct>15?intPct+'%':'';
     document.getElementById('loanResults').style.display = 'block';
 }
 
-/* ======== ГЛАВНАЯ — живые данные ======== */
+/* ======== ГЛАВНАЯ ======== */
 const TIPS = [
     'В калькуляторе работает клавиатура — просто начни набирать цифры!',
     'Заметки, задачи и кликер сохраняются автоматически. Закрой вкладку — данные останутся.',
-    'В конвертере единиц кнопка ⇄ мгновенно меняет "откуда" и "куда" местами.',
+    'В конвертере единиц кнопка ⇄ мгновенно меняет «откуда» и «куда» местами.',
     'QR-генератор работает без интернета. Можешь сменить цвет кода и фона.',
-    'В генераторе паролей отключи "похожие символы" чтобы не путать O и 0, l и 1.',
+    'В генераторе паролей отключи «похожие символы» чтобы не путать O и 0, l и 1.',
     'В шифраторе три режима: Base64, шифр Цезаря и простой реверс текста.',
     'В кликере 14 интересных фактов. Попробуй добраться до 1000!',
     'В текст-инструментах можно сортировать строки по алфавиту и удалять дубликаты.',
@@ -2597,6 +2620,7 @@ const TIPS = [
     'В конвертере цветов перетащи курсор по квадрату насыщенности, как в Figma!',
     'Генератор градиентов выдаёт готовый CSS — просто вставь в свой код.',
     'В кредитном калькуляторе видно наглядно, сколько уходит на проценты 😅',
+    'Мировые часы обновляются каждую секунду — удобно для звонков с другими часовыми поясами.',
 ];
 
 function initHome() {
@@ -2609,13 +2633,6 @@ function initHome() {
     }
 }
 initHome();
-
-// Refresh home stats when navigating back
-const _origOpenTab = window.openTab;
-window.openTab = function(id) {
-    _origOpenTab(id);
-    if (id === 'home') initHome();
-};
 
 /* ======== КОНВЕРТЕР ЧИСЛОВЫХ СИСТЕМ ======== */
 let _ncUpdating = false;
@@ -2688,7 +2705,7 @@ function updateBitVisual(n) {
         const isOne = bit === '1';
         const div = document.createElement('div');
         div.style.cssText = `width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;font-family:'Courier New',monospace;border:1.5px solid ${isOne?'var(--primary-color)':'var(--border-color)'};background:${isOne?'rgba(168,85,247,0.18)':'var(--surface2)'};color:${isOne?'var(--primary-color)':'var(--text-muted)'};transition:0.12s;cursor:default;`;
-        div.title = `Бит ${bits-1-i} = ${bit}, позиция ${bits-1-i}, вес = ${Math.pow(2, bits-1-i)}`;
+        div.title = `Бит ${bits-1-i}, вес = ${Math.pow(2, bits-1-i)}`;
         div.innerText = bit;
         el.appendChild(div);
     });
